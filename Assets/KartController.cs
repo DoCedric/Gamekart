@@ -8,7 +8,9 @@ public class KartController : MonoBehaviour
     public float acceleration = 20f;
     public float deceleration = 10f;
     public float turnSpeed = 80f;
+    public Transform[] wheelBones; // Array to hold the wheel bones
     public float fallingSpeed = 120f;
+    public float hitDampeningFactor = .3f;
 
     public float raycastDistance = 1f; // Distance to check for the track surface
     public float gimbalSpeed = 10f; // Speed to align the kart with the track
@@ -25,6 +27,7 @@ public class KartController : MonoBehaviour
     private Quaternion respawnRotation;
 
     [SerializeField] private Animator anim;
+    private CharacterController cc_controller;
 
     void Start()
     {
@@ -34,7 +37,9 @@ public class KartController : MonoBehaviour
         //get the start loc and rot
         respawnPosition = transform.position;
         respawnRotation = transform.rotation;
-}
+
+        cc_controller = GetComponent<CharacterController>();
+    }
 
     void Update()
     {
@@ -74,11 +79,53 @@ public class KartController : MonoBehaviour
         currentSpeed = Mathf.Clamp(currentSpeed, -maxSpeed, maxSpeed);
 
         // Forward, backward and steering
-        transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
+        //transform.Translate(Vector3.forward * currentSpeed * Time.deltaTime);
+        cc_controller.Move(transform.forward * currentSpeed * Time.deltaTime);
         transform.Rotate(Vector3.up, turnDirection * turnSpeed * Time.deltaTime);
 
         // Raycast to detect the track surface below the kart for position
         RaycastHit positionHit;
+        //Vector3 averageNormal = Vector3.zero;
+        //Vector3 averagePosition = Vector3.zero;
+        //int hitCount = 0;
+
+
+        //foreach (Transform wheelBone in wheelBones)
+        //{
+        //    RaycastHit hit;
+        //    if (Physics.Raycast(wheelBone.position, Vector3.down, out hit, raycastDistance, trackLayer))
+        //    {
+        //        averageNormal += hit.normal;
+        //        averagePosition += hit.point;
+        //        hitCount++;
+        //    }
+        //}
+
+
+        //if (hitCount > 0)
+        //{
+        //    averageNormal /= hitCount;
+        //    averagePosition /= hitCount;
+
+        //    // Calculate the angle difference between the current up direction and the average normal
+        //    float angleDifference = Vector3.Angle(transform.up, averageNormal);
+
+        //    // Adjust the rotation speed based on the angle difference
+        //    float adjustedGimbalSpeed = gimbalSpeed * (angleDifference / 90f); // Scale speed based on angle difference
+
+        //    // Align the kart's rotation with the average normal
+        //    Quaternion targetRotation = Quaternion.FromToRotation(transform.up, averageNormal) * transform.rotation;
+        //    transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * adjustedGimbalSpeed);
+
+        //    // Adjust the kart's position to stick to the track
+        //    transform.position = averagePosition + Vector3.up * (boxCollider.bounds.size.y / 2);
+        //}
+        //else
+        //{
+        //    transform.position -= Vector3.down * fallingSpeed * Time.deltaTime;
+        //}
+
+
         if (Physics.Raycast(transform.position, Vector3.down, out positionHit, raycastDistance, trackLayer))
         {
             // Calculate the angle difference between the current up direction and the track normal
@@ -93,6 +140,7 @@ public class KartController : MonoBehaviour
 
             // Adjust the kart's position to stick to the track
             transform.position = positionHit.point + Vector3.up * (boxCollider.bounds.size.y / 2);
+
         }
         else
         {
@@ -113,6 +161,26 @@ public class KartController : MonoBehaviour
         }
     }
 
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        Debug.Log("I hit somthinge");
+        currentSpeed *= -hitDampeningFactor;
+    //    // Check if the kart collides with an obstacle
+    //    if ((obstacleLayer & (1 << hit.gameObject.layer)) != 0)
+    //    {
+    //        // Handle collision with an obstacle
+    //        Debug.Log("Hit an obstacle!");
+    //        respawn();
+    //    }
+    //    // Check if the kart enters a deadzone
+    //    if ((deadzoneLayer & (1 << hit.gameObject.layer)) != 0)
+    //    {
+    //        // Handle entering a deadzone
+    //        Debug.Log("Entered a deadzone!");
+    //        respawn();
+    //    }
+    //}
+}
 
     void respawn()
     {
