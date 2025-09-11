@@ -1,28 +1,32 @@
 using Unity.Burst.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 public class KartController : MonoBehaviour
 {
-    public float maxSpeed = 100f;
+    public float maxSpeed = 25f;
     public float acceleration = 20f;
     public float deceleration = 10f;
-    public float turnSpeed = 80f;
+    public float turnSpeed = 50f;
 
     public Transform[] wheelGroundContactBones; // Array to hold the wheel bones
-    public float wheelOffset = 0.1f;
-    public float fallingSpeed = 120f;
+    public float fallingAcceleration = 20f;
+    public float maxFallingSpeed = 200f;
     public float hitDampeningFactor = .3f;
+    
 
-    public float raycastDistance = 4f; // Distance to check for the track surface
-    public float wheelheightCastDistance = 4f; // Distance to check for the track surface
+    public float raycastDistance = 1.5f; // Distance to check for the track surface
+    public float wheelheightCastDistance = 1f; // Distance to check for the track surface
     public float gimbalSpeed = 10f; // Speed to align the kart with the track
+    public float heightBeforeFalling = 0f; // Height before the kart starts falling
 
     public LayerMask trackLayer; // Layer mask to identify the track
     public LayerMask obstacleLayer; // Layer mask to identify obstacles
     public LayerMask deadzoneLayer; // Layer mask to identify the deadzone
 
     private float currentSpeed = 0f;
+    private float currentFallSpeed = 0f;
     private BoxCollider boxCollider;
 
     // Respawn position and rotation
@@ -34,8 +38,6 @@ public class KartController : MonoBehaviour
 
     void Start()
     {
-
-
         //get the start loc and rot
         respawnPosition = transform.position;
         respawnRotation = transform.rotation;
@@ -46,7 +48,7 @@ public class KartController : MonoBehaviour
     void Update()
     {
         //respawn if falls through world
-        if (cc_controller.transform.position.y < -20)
+        if (cc_controller.transform.position.y < -200)
         {
             respawn();
         }
@@ -74,6 +76,10 @@ public class KartController : MonoBehaviour
             else if (currentSpeed < 0)
             {
                 currentSpeed += deceleration * Time.deltaTime;
+            }
+            else if (currentSpeed < 0.1f && currentSpeed > -0.1f)
+            {
+                currentSpeed = 0;
             }
         }
 
@@ -110,16 +116,34 @@ public class KartController : MonoBehaviour
             transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * adjustedGimbalSpeed);
 
             averagePosition /= hitCount;
-            transform.position = averagePosition;
+            if (Vector3.Distance(transform.position, averagePosition) > heightBeforeFalling)
+            {
+                Debug.Log("FALLING");
+                currentFallSpeed = Mathf.Clamp(currentFallSpeed + fallingAcceleration * Time.deltaTime, 0, maxFallingSpeed);
+                Vector3 targetPosition = Vector3.MoveTowards(transform.position, averagePosition, Time.deltaTime * currentFallSpeed);
+                Vector3 moveVector = targetPosition - transform.position;
+                cc_controller.Move(moveVector);
+            }
+            else
+            {
+                Debug.Log("Cruising");
+                // stick to the track, this is to ensure the kart is only airborn when intended.
+                currentFallSpeed = 0;
+                transform.position = averagePosition;
+            }
         }
         else
         {
-            //transform.position -= Vector3.down * fallingSpeed * Time.deltaTime;
+            // No track surface detected, apply falling logic
+            currentFallSpeed = Mathf.Clamp(currentFallSpeed + fallingAcceleration * Time.deltaTime, 0, maxFallingSpeed);
+            cc_controller.Move(Vector3.down * currentFallSpeed * Time.deltaTime); // Move down if no track surface is detected
+            
         }
 
         //update animations
         UpdateAnimations(moveDirection, turnDirection);
     }
+
 
     void UpdateAnimations(float moveDir, float turnDir)
     {
@@ -130,12 +154,15 @@ public class KartController : MonoBehaviour
             anim.SetFloat("Gas", moveDir);
         }
     }
-
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
-        Debug.Log("I hit somthinge");
-        currentSpeed *= -hitDampeningFactor;
-}
+        if (((1 << hit.gameObject.layer) & obstacleLayer) != 0)
+        {
+            Debug.Log("Bumped my head");
+            currentSpeed *= -hitDampeningFactor;
+        }
+    }
+
 
     void respawn()
     {
