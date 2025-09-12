@@ -9,7 +9,9 @@ public class Wheel
 {
     public Boolean accelerates;
     public Boolean steers;
-    public Transform transform;
+    public Transform anchor;
+    public GameObject wheelMesh;
+    public float radius = 0.15f;
 }
 
 public class kartHandlerPhysics : MonoBehaviour
@@ -70,8 +72,8 @@ public class kartHandlerPhysics : MonoBehaviour
                 if (wheel.accelerates)
                 {
                     // Apply force at the wheel position for better physics interaction
-                    Vector3 force = wheel.transform.forward * moveInput * acceleration;
-                    rb.AddForceAtPosition(force, wheel.transform.position, ForceMode.Force);
+                    Vector3 force = wheel.anchor.forward * moveInput * acceleration;
+                    rb.AddForceAtPosition(force, wheel.anchor.position, ForceMode.Force);
                 }
             }
         }
@@ -96,17 +98,19 @@ public class kartHandlerPhysics : MonoBehaviour
         foreach (Wheel wheel in wheels)
         {
             RaycastHit hit;
-            if (Physics.Raycast(wheel.transform.position, -wheel.transform.up, out hit, hoverHeight*2))
+            if (Physics.Raycast(wheel.anchor.position, -wheel.anchor.up, out hit, hoverHeight*2))
             {
 
                 float compression = Mathf.Clamp01((hoverHeight - hit.distance) / hoverHeight);
 
                 // Damping: oppose motion along the up-axis of the point
-                float upVel = Vector3.Dot(rb.GetPointVelocity(wheel.transform.position), hit.normal);
+                float upVel = Vector3.Dot(rb.GetPointVelocity(wheel.anchor.position), hit.normal);
                 float damp = upVel * damping;
 
                 Vector3 force = hit.normal * (compression * hoverForce - damp);
-                rb.AddForceAtPosition(force, wheel.transform.position, ForceMode.Force);
+                rb.AddForceAtPosition(force, wheel.anchor.position, ForceMode.Force);
+
+                wheel.wheelMesh.transform.position = hit.point + hit.normal * wheel.radius;
             }
         }
     }
@@ -124,16 +128,16 @@ public class kartHandlerPhysics : MonoBehaviour
                 Quaternion targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
 
                 // Smoothly interpolate from current to target rotation
-                wheel.transform.localRotation = Quaternion.Slerp(
-                    wheel.transform.localRotation,
+                wheel.anchor.localRotation = Quaternion.Slerp(
+                    wheel.anchor.localRotation,
                     targetRotation,
                     Time.fixedDeltaTime * turnSpeed
                 );
             }
 
             // Apply lateral slip force
-            Vector3 wheelWorldPos = wheel.transform.position;
-            Vector3 wheelRight = wheel.transform.right;
+            Vector3 wheelWorldPos = wheel.anchor.position;
+            Vector3 wheelRight = wheel.anchor.right;
 
             // Get velocity at wheel position
             Vector3 velocity = rb.GetPointVelocity(wheelWorldPos);
@@ -160,8 +164,8 @@ public class kartHandlerPhysics : MonoBehaviour
         {
             if (wheel == null) continue;
 
-            Vector3 origin = wheel.transform.position;
-            Vector3 dir = -wheel.transform.up;
+            Vector3 origin = wheel.anchor.position;
+            Vector3 dir = -wheel.anchor.up;
 
             if (Physics.Raycast(origin, dir, out RaycastHit hit, maxDist))
             {
