@@ -12,6 +12,7 @@ public class Wheel
     public Transform anchor;
     public GameObject wheelMesh;
     public float radius = 0.15f;
+    public bool isGrounded=false;
 }
 
 public class kartHandlerPhysics : MonoBehaviour
@@ -21,6 +22,7 @@ public class kartHandlerPhysics : MonoBehaviour
     [SerializeField] float hoverForce = 65f;
     [SerializeField] float hoverHeight = 0.5f;
     [SerializeField] float acceleration = 50f;
+    [SerializeField] float maxSpeed = 400f;
     [SerializeField] float maxDownWardForce = 100f;
     [SerializeField] float damping = 100f;
     [SerializeField] float steerAngle = 30f;
@@ -61,7 +63,7 @@ public class kartHandlerPhysics : MonoBehaviour
         float moveInput = Input.GetAxis("Vertical");
         Vector3 localVelocity = transform.InverseTransformDirection(rb.linearVelocity);
 
-        if (Mathf.Abs(moveInput) < 0.1)
+        if (Mathf.Abs(moveInput) < 0.1 || localVelocity.magnitude > maxSpeed)
         {
             //rb.linearVelocity *= 0.8f; // doesnt work, use drag instead
         }
@@ -69,7 +71,7 @@ public class kartHandlerPhysics : MonoBehaviour
         {
             foreach (Wheel wheel in wheels)
             {
-                if (wheel.accelerates)
+                if (wheel.accelerates && wheel.isGrounded)
                 {
                     // Apply force at the wheel position for better physics interaction
                     Vector3 force = wheel.anchor.forward * moveInput * acceleration;
@@ -97,9 +99,11 @@ public class kartHandlerPhysics : MonoBehaviour
     {
         foreach (Wheel wheel in wheels)
         {
+            wheel.isGrounded = false;
             RaycastHit hit;
             if (Physics.Raycast(wheel.anchor.position, -wheel.anchor.up, out hit, hoverHeight*2))
             {
+                wheel.isGrounded = true;
 
                 float compression = Mathf.Clamp01((hoverHeight - hit.distance) / hoverHeight);
 
@@ -121,7 +125,7 @@ public class kartHandlerPhysics : MonoBehaviour
 
         foreach (Wheel wheel in wheels)
         {
-            if (wheel.steers)
+            if (wheel.steers && wheel.isGrounded)
             {
                 // Calculate target rotation around the local Y-axis
                 float targetAngle = Input.GetAxis("Horizontal") * steerAngle;
