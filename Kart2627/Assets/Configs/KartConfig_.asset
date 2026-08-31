@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e742962dfcfb54595a309781859ff1, type: 3}
+  m_Name: KartConfig_
+  m_EditorClassIdentifier: Assembly-CSharp::KartAcademy.Core.KartConfig
+  kartName: Default Kart
+  description: A default kart configuration
+  maxSpeed: 20
+  acceleration: 10
+  brakingStrength: 15
+  reverseSpeed: 8
+  weight: 1
+  handling: 5
+  traction: 0
+  turnSpeed: 120
+  steeringCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 11.829566
+      value: 0.7226756
+      inSlope: -0.034999996
+      outSlope: -0.034999996
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 20
+      value: 0.3
+      inSlope: -0.035
+      outSlope: -0.035
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  miniTurbo: 1
+  driftChargeRate: 2
+  softDriftOptimalAngle: 30
+  softDriftBonus: 1.5
+  coinSpeedBonus: 0.5
+  cameraFollowDistance: 8
+  cameraLookAheadDistance: 5
+  cameraHeight: 3
+  cameraDriftOffset: 2
+  visualPrefab: {fileID: 0}
+  engineLoopClip: {fileID: 0}
+  boostAudioClip: {fileID: 0}
+  driftStartClip: {fileID: 0}
+  driftSparksPrefab: {fileID: 0}
+  boostTrailPrefab: {fileID: 0}
