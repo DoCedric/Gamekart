@@ -118,20 +118,30 @@ public class KartController : MonoBehaviour
     {
         bool isGrounded = groundDetector.IsGrounded;
         bool isDrifting = driftSystem.IsDrifting;
+        bool isInDriftState = currentState == KartState.DriftingLeft || currentState == KartState.DriftingRight;
 
-        // Drifting takes priority
-        if (isDrifting)
+        // ALWAYS exit drift if drift input is released
+        if (isInDriftState && !driftInput)
         {
-            if (currentState != KartState.DriftingLeft && currentState != KartState.DriftingRight)
-            {
-                // Determine drift direction
-                currentState = driftSystem.CurrentDirection == DriftSystem.DriftDirection.Left 
-                    ? KartState.DriftingLeft 
-                    : KartState.DriftingRight;
-            }
+            driftSystem.ExitDrift();
+            currentState = isGrounded ? KartState.Grounded : KartState.Airborne;
         }
-        // Try to enter drift from grounded state
-        else if (isGrounded && driftInput && currentState == KartState.Grounded)
+
+        // ALWAYS exit drift if airborne
+        if (isInDriftState && !isGrounded)
+        {
+            driftSystem.ExitDrift();
+            currentState = KartState.Airborne;
+        }
+
+        // Force sync: if state is drifting but DriftSystem disagrees, force exit
+        if (isInDriftState && !isDrifting)
+        {
+            currentState = isGrounded ? KartState.Grounded : KartState.Airborne;
+        }
+
+        // ONLY enter drift if: grounded, drift button held, steering input given, and not already drifting
+        if (!isInDriftState && isGrounded && driftInput && currentState == KartState.Grounded && !isDrifting)
         {
             if (driftSystem.TryEnterDrift(input.x, rb))
             {
@@ -140,15 +150,9 @@ public class KartController : MonoBehaviour
                     : KartState.DriftingRight;
             }
         }
-        // Exit drift
-        else if ((isDrifting && !driftInput) || (isDrifting && !isGrounded))
-        {
-            int turboTier = driftSystem.ExitDrift();
-            // TODO: Phase 4 - trigger mini-turbo with turboTier
-            currentState = isGrounded ? KartState.Grounded : KartState.Airborne;
-        }
-        // Grounded/Airborne transitions
-        else if (!isDrifting)
+
+        // Grounded/Airborne transitions (only when NOT drifting)
+        if (!isInDriftState && !isDrifting)
         {
             bool wasGrounded = currentState == KartState.Grounded;
             
@@ -163,6 +167,9 @@ public class KartController : MonoBehaviour
                 airborneSystem.EnterAirborne(rb.linearVelocity);
             }
         }
+
+        // Debug output
+        Debug.Log($"State: {currentState} | Speed: {movementSystem.CurrentSpeed:F1} | Grounded: {isGrounded} | Drifting: {isDrifting} | DriftInput: {driftInput}");
     }
 
     private void HandleCurrentState(Vector2 input, bool driftInput)
@@ -170,14 +177,23 @@ public class KartController : MonoBehaviour
         switch (currentState)
         {
             case KartState.Grounded:
+                // Normal movement - no speed reduction
                 movementSystem.UpdateMovement(input.y, coinCount);
                 break;
 
             case KartState.DriftingLeft:
             case KartState.DriftingRight:
-                // During drift, reduce forward movement slightly
-                movementSystem.UpdateMovement(input.y * 0.8f, coinCount);
-                driftSystem.UpdateDrift(input.x, Time.fixedDeltaTime);
+                // Only apply speed reduction if actually drifting
+                if (driftSystem.IsDrifting)
+                {
+                    movementSystem.UpdateMovement(input.y * 0.8f, coinCount);
+                    driftSystem.UpdateDrift(input.x, Time.fixedDeltaTime);
+                }
+                else
+                {
+                    // Safety: if state is drift but not drifting, apply normal movement
+                    movementSystem.UpdateMovement(input.y, coinCount);
+                }
                 break;
 
             case KartState.Airborne:

@@ -1,0 +1,10 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/Main.uss?fileID=7433441132597879392&amp;guid=f18aa4f80cca8bf4a9566ae4d1bd57fc&amp;type=3#Main"/>
+    <ui:VisualElement name="information" data-source="project://database/Assets/ScriptedObjects/Databus/runtimeDatabus_.asset?fileID=11400000&amp;guid=f36b0e9cb77565d418cc318cb0baa6f4&amp;type=2#runtimeDatabus_" style="flex-grow: 1; padding-top: 30px; padding-right: 30px; padding-bottom: 30px; padding-left: 30px;">
+        <ui:Label text="Label" name="Speed" class="text-default">
+            <Bindings>
+                <ui:DataBinding property="text" data-source-path="currentSpeed" binding-mode="ToTarget"/>
+            </Bindings>
+        </ui:Label>
+    </ui:VisualElement>
+</ui:UXML>

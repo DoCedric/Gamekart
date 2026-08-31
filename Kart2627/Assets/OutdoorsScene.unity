@@ -1375,6 +1375,7 @@ GameObject:
   - component: {fileID: 1156812114}
   - component: {fileID: 1156812117}
   - component: {fileID: 1156812118}
+  - component: {fileID: 1156812120}
   - component: {fileID: 1156812110}
   - component: {fileID: 1156812119}
   m_Layer: 0
@@ -1545,6 +1546,20 @@ CapsuleCollider:
   m_Height: 2.5524101
   m_Direction: 2
   m_Center: {x: 0, y: 1.19, z: -0.09}
+--- !u!114 &1156812120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156812108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8ddc4cd05240aa45b4bd6e8062a7cf0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DataCollector
+  kartController: {fileID: 1156812111}
+  dataBus: {fileID: 11400000, guid: f36b0e9cb77565d418cc318cb0baa6f4, type: 2}
 --- !u!1 &1418244320
 GameObject:
   m_ObjectHideFlags: 0
@@ -1612,7 +1627,7 @@ PanelRenderer:
   m_MaskInteraction: 0
   serializedVersion: 1
   m_PanelSettings: {fileID: 11400000, guid: 54a2b354fddd38b48a981b3d67808d43, type: 2}
-  sourceAsset: {fileID: 9197481963319205126, guid: e4b3bd7c1f7a86743a8505c751b857d4, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: 7c58152f120a271459f658dc81b521bd, type: 3}
   m_ParentUI: {fileID: 0}
   m_WorldSpaceSizeMode: 1
   m_WorldSpaceWidth: 1920
