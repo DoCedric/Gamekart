@@ -28,10 +28,29 @@ namespace KartAcademy.Core
         [SerializeField] private AnimationCurve steeringCurve = AnimationCurve.Linear(0, 1, 20, 0.3f);
 
         [Header("Drift & Turbo")]
-        [SerializeField] private float miniTurbo = 1f;
-        [SerializeField] private float driftChargeRate = 2f;
-        [SerializeField] private float softDriftOptimalAngle = 30f;
-        [SerializeField] private float softDriftBonus = 1.5f;
+        [SerializeField] private float minDriftSpeed = 6f;
+        [SerializeField] private float driftTurnRate = 160f;
+        [SerializeField] private float driftMaxSpeedFactor = 0.9f;
+        [SerializeField] private float lateralSlipTime = 0.45f;
+        [SerializeField] private float driftAngleNudgeRange = 40f;
+        [SerializeField] private float driftKickImpulse = 3f;
+        [SerializeField] private float hopForce = 5f;
+
+        [Header("Mini-Turbo Tiers")]
+        [SerializeField] private float tier1Time = 1.0f;
+        [SerializeField] private float tier2Time = 2.0f;
+        [SerializeField] private float tier3Time = 3.0f;
+        [SerializeField] private float tier1BoostPercent = 0.10f;
+        [SerializeField] private float tier2BoostPercent = 0.20f;
+        [SerializeField] private float tier3BoostPercent = 0.30f;
+        [SerializeField] private float tier1Duration = 0.5f;
+        [SerializeField] private float tier2Duration = 0.8f;
+        [SerializeField] private float tier3Duration = 1.2f;
+
+        [Header("Drift Edge Cases")]
+        [SerializeField] private float airborneDriftGrace = 0.4f;
+        [SerializeField] private bool allowDriftDirectionSwitch = true;
+        [SerializeField] private float directionSwitchCooldown = 0.18f;
 
         [Header("Coin Scaling")]
         [SerializeField] private float coinSpeedBonus = 0.5f;
@@ -62,10 +81,25 @@ namespace KartAcademy.Core
         public float Traction => Mathf.Max(0.1f, traction);
         public float TurnSpeed => Mathf.Max(0.1f, turnSpeed);
         public AnimationCurve SteeringCurve => steeringCurve ?? AnimationCurve.Linear(0, 1, 20, 0.3f);
-        public float MiniTurbo => Mathf.Max(0.1f, miniTurbo);
-        public float DriftChargeRate => Mathf.Max(0.1f, driftChargeRate);
-        public float SoftDriftOptimalAngle => Mathf.Max(5f, softDriftOptimalAngle);
-        public float SoftDriftBonus => Mathf.Max(1f, softDriftBonus);
+        public float MinDriftSpeed => Mathf.Max(0f, minDriftSpeed);
+        public float DriftTurnRate => Mathf.Max(1f, driftTurnRate);
+        public float DriftMaxSpeedFactor => Mathf.Clamp01(driftMaxSpeedFactor);
+        public float LateralSlipTime => Mathf.Max(0.01f, lateralSlipTime);
+        public float DriftAngleNudgeRange => Mathf.Max(0f, driftAngleNudgeRange);
+        public float DriftKickImpulse => Mathf.Max(0f, driftKickImpulse);
+        public float HopForce => Mathf.Max(0f, hopForce);
+        public float Tier1Time => Mathf.Max(0.01f, tier1Time);
+        public float Tier2Time => Mathf.Max(Tier1Time, tier2Time);
+        public float Tier3Time => Mathf.Max(Tier2Time, tier3Time);
+        public float Tier1BoostPercent => Mathf.Max(0f, tier1BoostPercent);
+        public float Tier2BoostPercent => Mathf.Max(0f, tier2BoostPercent);
+        public float Tier3BoostPercent => Mathf.Max(0f, tier3BoostPercent);
+        public float Tier1Duration => Mathf.Max(0f, tier1Duration);
+        public float Tier2Duration => Mathf.Max(0f, tier2Duration);
+        public float Tier3Duration => Mathf.Max(0f, tier3Duration);
+        public float AirborneDriftGrace => Mathf.Max(0f, airborneDriftGrace);
+        public bool AllowDriftDirectionSwitch => allowDriftDirectionSwitch;
+        public float DirectionSwitchCooldown => Mathf.Max(0f, directionSwitchCooldown);
         public float CoinSpeedBonus => Mathf.Max(0f, coinSpeedBonus);
         public float CameraFollowDistance => Mathf.Max(1f, cameraFollowDistance);
         public float CameraLookAheadDistance => Mathf.Max(0f, cameraLookAheadDistance);

@@ -56,5 +56,18 @@ namespace KartAcademy.Core
         {
             currentHeading = heading;
         }
+
+        /// <summary>
+        /// Rotate heading while drifting: turns at a fixed rate in the locked drift direction.
+        /// Steering only nudges that rate within +/-nudgeRange, it never re-aims the kart directly.
+        /// </summary>
+        public void UpdateDriftHeading(int driftDirectionSign, float steerInput, float driftTurnRate, float nudgeRange)
+        {
+            float nudge = Mathf.Clamp(steerInput * driftDirectionSign, -1f, 1f) * nudgeRange;
+            float turnAmount = driftDirectionSign * driftTurnRate + driftDirectionSign * nudge;
+            currentHeading += turnAmount * Time.fixedDeltaTime;
+
+            transform.rotation = Quaternion.Euler(transform.eulerAngles.x, currentHeading, transform.eulerAngles.z);
+        }
     }
 }

@@ -93,107 +93,65 @@ public class KartController : MonoBehaviour
         if (kartConfig == null) return;
 
         Vector2 input = moveAction.action.ReadValue<Vector2>();
-        bool driftInput = driftAction != null && driftAction.action.IsPressed();
+        bool driftHeld = driftAction != null && driftAction.action.IsPressed();
+        bool driftPressed = driftAction != null && driftAction.action.WasPressedThisFrame();
 
-        // Update state
-        UpdateState(input, driftInput);
+        // Drive the drift/mini-turbo state machine - this is the single source of truth
+        // for drift state, KartController just reflects it into KartState below.
+        driftSystem.Tick(input.x, driftPressed, driftHeld, groundDetector.IsGrounded, rb, Time.fixedDeltaTime);
 
-        // Handle state-specific logic
-        HandleCurrentState(input, driftInput);
+        UpdateState();
 
-        // Apply velocity to rigidbody based on state
+        HandleCurrentState(input);
+
         ApplyVelocity();
 
-        // Update steering
-        steeringSystem.UpdateSteering(input.x);
+        UpdateSteering(input.x);
 
-        // Stabilize kart (prevent excessive rolling)
         StabilizeKart();
 
-        // Apply ground adhesion (slope following)
         ApplyGroundAdhesion();
     }
 
-    private void UpdateState(Vector2 input, bool driftInput)
+    private void UpdateState()
     {
-        bool isGrounded = groundDetector.IsGrounded;
-        bool isDrifting = driftSystem.IsDrifting;
-        bool isInDriftState = currentState == KartState.DriftingLeft || currentState == KartState.DriftingRight;
-
-        // ALWAYS exit drift if drift input is released
-        if (isInDriftState && !driftInput)
+        if (driftSystem.IsDrifting)
         {
-            driftSystem.ExitDrift();
-            currentState = isGrounded ? KartState.Grounded : KartState.Airborne;
+            currentState = driftSystem.CurrentDirection == DriftSystem.DriftDirection.Right
+                ? KartState.DriftingRight
+                : KartState.DriftingLeft;
+            return;
         }
 
-        // ALWAYS exit drift if airborne
-        if (isInDriftState && !isGrounded)
+        if (driftSystem.CurrentPhase == DriftSystem.DriftPhase.Boosting)
         {
-            driftSystem.ExitDrift();
+            currentState = KartState.Boost;
+            return;
+        }
+
+        bool isGrounded = groundDetector.IsGrounded;
+        bool wasAirborne = currentState == KartState.Airborne;
+
+        if (isGrounded)
+        {
+            if (wasAirborne) airborneSystem.ExitAirborne();
+            currentState = KartState.Grounded;
+        }
+        else
+        {
+            if (!wasAirborne) airborneSystem.EnterAirborne(rb.linearVelocity);
             currentState = KartState.Airborne;
         }
-
-        // Force sync: if state is drifting but DriftSystem disagrees, force exit
-        if (isInDriftState && !isDrifting)
-        {
-            currentState = isGrounded ? KartState.Grounded : KartState.Airborne;
-        }
-
-        // ONLY enter drift if: grounded, drift button held, steering input given, and not already drifting
-        if (!isInDriftState && isGrounded && driftInput && currentState == KartState.Grounded && !isDrifting)
-        {
-            if (driftSystem.TryEnterDrift(input.x, rb))
-            {
-                currentState = driftSystem.CurrentDirection == DriftSystem.DriftDirection.Left 
-                    ? KartState.DriftingLeft 
-                    : KartState.DriftingRight;
-            }
-        }
-
-        // Grounded/Airborne transitions (only when NOT drifting)
-        if (!isInDriftState && !isDrifting)
-        {
-            bool wasGrounded = currentState == KartState.Grounded;
-            
-            if (isGrounded && !wasGrounded)
-            {
-                currentState = KartState.Grounded;
-                airborneSystem.ExitAirborne();
-            }
-            else if (!isGrounded && wasGrounded)
-            {
-                currentState = KartState.Airborne;
-                airborneSystem.EnterAirborne(rb.linearVelocity);
-            }
-        }
-
-        // Debug output
-        Debug.Log($"State: {currentState} | Speed: {movementSystem.CurrentSpeed:F1} | Grounded: {isGrounded} | Drifting: {isDrifting} | DriftInput: {driftInput}");
     }
 
-    private void HandleCurrentState(Vector2 input, bool driftInput)
+    private void HandleCurrentState(Vector2 input)
     {
         switch (currentState)
         {
-            case KartState.Grounded:
-                // Normal movement - no speed reduction
-                movementSystem.UpdateMovement(input.y, coinCount);
-                break;
-
             case KartState.DriftingLeft:
             case KartState.DriftingRight:
-                // Only apply speed reduction if actually drifting
-                if (driftSystem.IsDrifting)
-                {
-                    movementSystem.UpdateMovement(input.y * 0.8f, coinCount);
-                    driftSystem.UpdateDrift(input.x, Time.fixedDeltaTime);
-                }
-                else
-                {
-                    // Safety: if state is drift but not drifting, apply normal movement
-                    movementSystem.UpdateMovement(input.y, coinCount);
-                }
+                // Real speed cap while drifting (a bit below top speed), not a scaled input hack.
+                movementSystem.UpdateMovement(input.y, coinCount, kartConfig.DriftMaxSpeedFactor);
                 break;
 
             case KartState.Airborne:
@@ -201,14 +159,32 @@ public class KartController : MonoBehaviour
                 airborneSystem.UpdateAirborne(Time.fixedDeltaTime, input.x);
                 break;
 
+            case KartState.Grounded:
+            case KartState.Boost:
             case KartState.Brake:
             case KartState.Reverse:
-            case KartState.Boost:
             case KartState.JumpHop:
             case KartState.CollisionRecovery:
-                // TODO: Implement in future phases
+            default:
+                // Boost's speed bonus is applied inside MovementSystem itself, so this is
+                // identical to normal grounded movement from KartController's point of view.
                 movementSystem.UpdateMovement(input.y, coinCount);
                 break;
+        }
+    }
+
+    private void UpdateSteering(float steerInput)
+    {
+        if (driftSystem.IsDrifting)
+        {
+            int sign = driftSystem.CurrentDirection == DriftSystem.DriftDirection.Right ? 1 : -1;
+            steeringSystem.UpdateDriftHeading(sign, steerInput, kartConfig.DriftTurnRate, kartConfig.DriftAngleNudgeRange);
+        }
+        else if (currentState != KartState.Airborne)
+        {
+            // While airborne, AirborneSystem already drives heading via its own reduced
+            // air-control authority - letting normal grip steering run too would fight it.
+            steeringSystem.UpdateSteering(steerInput);
         }
     }
 
@@ -224,11 +200,13 @@ public class KartController : MonoBehaviour
 
             case KartState.DriftingLeft:
             case KartState.DriftingRight:
-                // During drift, apply movement in current heading direction
-                velocity = movementSystem.GetVelocity(transform);
+                // During drift, velocity follows the slide direction, not the heading
+                velocity = driftSystem.GetDriftVelocityDirection() * movementSystem.CurrentSpeed;
                 break;
 
             default:
+                // Boost's speed bonus already lives inside movementSystem.CurrentSpeed,
+                // so Boost/Grounded/etc. all share this normal forward-velocity path.
                 velocity = movementSystem.GetVelocity(transform);
                 break;
         }
