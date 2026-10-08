@@ -17,11 +17,28 @@ public class KartSelectorSpin : MonoBehaviour
     private float spinTimer = 0f;
     private float lastCurveValue = 0f;
 
+    [Header("Input")]
+    [SerializeField] InputActionReference dragAction;   // button held while dragging (e.g. Player/Attack)
+    [SerializeField] InputActionReference lookAction;   // pointer delta (e.g. Player/Look)
+    [SerializeField] InputActionReference spinAction;   // button that triggers the quick spin (e.g. Player/Jump)
+
     private bool isDragging = false;
-    private Vector2 lastMousePos;
 
     private Quaternion originalRotation;
 
+    void OnEnable()
+    {
+        dragAction.action.Enable();
+        lookAction.action.Enable();
+        spinAction.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        dragAction.action.Disable();
+        lookAction.action.Disable();
+        spinAction.action.Disable();
+    }
 
     private void Start()
     {
@@ -48,24 +65,17 @@ public class KartSelectorSpin : MonoBehaviour
 
         void HandleInput()
         {
-            Mouse mouse = Mouse.current;
-            Keyboard keyboard = Keyboard.current;
-
-            if (mouse != null)
+            if (dragAction.action.WasPressedThisFrame())
             {
-                if (mouse.leftButton.wasPressedThisFrame)
-                {
-                    isDragging = true;
-                    lastMousePos = mouse.position.ReadValue();
-                }
-
-                if (mouse.leftButton.wasReleasedThisFrame)
-                {
-                    isDragging = false;
-                }
+                isDragging = true;
             }
 
-            if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame && !isSpinning && !isDragging)
+            if (dragAction.action.WasReleasedThisFrame())
+            {
+                isDragging = false;
+            }
+
+            if (spinAction.action.WasPressedThisFrame() && !isSpinning && !isDragging)
             {
                 isSpinning = true;
                 spinTimer = 0f;
@@ -80,11 +90,7 @@ public class KartSelectorSpin : MonoBehaviour
 
         void HandleDragRotation()
         {
-            if (Mouse.current == null) return;
-
-            Vector2 mousePos = Mouse.current.position.ReadValue();
-            Vector2 mouseDelta = mousePos - lastMousePos;
-            lastMousePos = mousePos;
+            Vector2 mouseDelta = lookAction.action.ReadValue<Vector2>();
 
             // Horizontal drag → Y-axis rotation
             float yRotation = -mouseDelta.x * dragSensitivity;

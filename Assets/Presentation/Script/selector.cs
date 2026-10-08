@@ -23,6 +23,25 @@ public class selector : MonoBehaviour
     [SerializeField] private float timer = 4f;
     private float currentTimer = 0f;
     private Boolean timing = true;
+
+    [Header("Input")]
+    [SerializeField] InputActionReference nextAction;
+    [SerializeField] InputActionReference previousAction;
+    [SerializeField] InputActionReference toggleTimerAction;
+
+    void OnEnable()
+    {
+        nextAction.action.Enable();
+        previousAction.action.Enable();
+        toggleTimerAction.action.Enable();
+    }
+
+    void OnDisable()
+    {
+        nextAction.action.Disable();
+        previousAction.action.Disable();
+        toggleTimerAction.action.Disable();
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -34,24 +53,19 @@ public class selector : MonoBehaviour
     {
         currentTimer += Time.deltaTime;
 
-        Keyboard keyboard = Keyboard.current;
-        bool right = keyboard != null && keyboard.rightArrowKey.wasPressedThisFrame;
-        bool left = keyboard != null && keyboard.leftArrowKey.wasPressedThisFrame;
-        bool down = keyboard != null && keyboard.downArrowKey.wasPressedThisFrame;
-
-        if (right || currentTimer >= timer)
+        if (nextAction.action.WasPressedThisFrame() || currentTimer >= timer)
         {
             currentIndex = (currentIndex + 1) % kartData.Count;
             ReplaceKart(currentIndex);
             currentTimer = 0f;
         }
-        else if (left)
+        else if (previousAction.action.WasPressedThisFrame())
         {
             currentIndex = (currentIndex - 1 + kartData.Count) % kartData.Count;
             ReplaceKart(currentIndex);
         }
 
-        else if (down)
+        else if (toggleTimerAction.action.WasPressedThisFrame())
         {
             if(timing)
             {
