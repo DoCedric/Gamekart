@@ -1,7 +1,0 @@
-:root {
-}
-
-.text-default {
-    font-size: 50px;
-    -unity-font-style: bold;
-}
