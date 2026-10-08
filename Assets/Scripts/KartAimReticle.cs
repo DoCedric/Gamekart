@@ -9,6 +9,16 @@ public class KartAimReticle : MonoBehaviour
     [SerializeField] Color missColor = Color.red;
     [SerializeField] float heightAboveTrack = 0.05f;
 
+    void OnEnable()
+    {
+        reticle.gameObject.SetActive(true);
+    }
+
+    void OnDisable()
+    {
+        reticle.gameObject.SetActive(false);
+    }
+
     void LateUpdate()
     {
         reticle.position = aimPoint.AimPointWorld + Vector3.up * heightAboveTrack;

@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using TMPro;
 using System.Linq;
@@ -24,16 +25,22 @@ public class selector : MonoBehaviour
     private float currentTimer = 0f;
     private Boolean timing = true;
 
+    [Header("Flow")]
+    [SerializeField] private string trackSceneName = "KartTestTrack";
+    private bool confirmed = false;
+
     [Header("Input")]
     [SerializeField] InputActionReference nextAction;
     [SerializeField] InputActionReference previousAction;
     [SerializeField] InputActionReference toggleTimerAction;
+    [SerializeField] InputActionReference confirmAction;
 
     void OnEnable()
     {
         nextAction.action.Enable();
         previousAction.action.Enable();
         toggleTimerAction.action.Enable();
+        confirmAction.action.Enable();
     }
 
     void OnDisable()
@@ -41,6 +48,7 @@ public class selector : MonoBehaviour
         nextAction.action.Disable();
         previousAction.action.Disable();
         toggleTimerAction.action.Disable();
+        confirmAction.action.Disable();
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -51,7 +59,15 @@ public class selector : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        currentTimer += Time.deltaTime;
+        if (confirmed) return;
+
+        if (confirmAction.action.WasPressedThisFrame())
+        {
+            ConfirmSelection();
+            return;
+        }
+
+        if (timing) currentTimer += Time.deltaTime;
 
         if (nextAction.action.WasPressedThisFrame() || currentTimer >= timer)
         {
@@ -79,6 +95,16 @@ public class selector : MonoBehaviour
         }
     }
 
+    void ConfirmSelection()
+    {
+        if (kartData.Count == 0 || kartData[currentIndex].kartPrefab == null)
+            return;
+
+        confirmed = true;
+        KartSelection.SelectedKartPrefab = kartData[currentIndex].kartPrefab;
+        SceneManager.LoadScene(trackSceneName);
+    }
+
     void ReplaceKart(int index)
     {
         if (currentKartInstance != null)
@@ -95,6 +121,7 @@ public class selector : MonoBehaviour
             return;
 
         GameObject newKart = Instantiate(kartData[index].kartPrefab, transform);
+        KartDrivingState.SetDrivingEnabled(newKart, false);
         currentKartInstance = newKart.transform;
         UpdateText();
     }
