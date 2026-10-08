@@ -55,7 +55,7 @@ MonoBehaviour:
   missFallbackDistance: 8
   minLookaheadDistance: 1.5
   maxTurnRateDegreesPerSecond: 130
-  sidewaysGripPerSecond: 8
+  sidewaysGripPerSecond: 2
   trackLayers:
     serializedVersion: 2
     m_Bits: 256

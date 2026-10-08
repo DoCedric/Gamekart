@@ -9,7 +9,16 @@ public class KartMotor : MonoBehaviour
     [SerializeField] float sphereRadius = 0.5f;
     [SerializeField] float modelHeightBelowSphereCenter = 0.5f;
 
+    [Tooltip("Used when the ground under the kart has no SurfaceZone. Leave empty for neutral handling.")]
+    [SerializeField] SurfaceType defaultSurface;
+
     public float ForwardSpeed { get; private set; } // signed meters per second along the heading
+    public SurfaceType CurrentSurface { get; private set; }
+
+    // Blended toward the current surface so handling doesn't snap at surface edges.
+    float maxSpeedMultiplier = 1f;
+    float accelerationMultiplier = 1f;
+    float gripMultiplier = 1f;
 
     KartInputReader inputReader;
     KartAimPoint aimPoint;
@@ -25,9 +34,10 @@ public class KartMotor : MonoBehaviour
     void FixedUpdate()
     {
         float deltaTime = Time.fixedDeltaTime;
-        float speedFraction = Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / tuning.maxForwardSpeed);
-
         CheckGround();
+        BlendSurfaceMultipliers(deltaTime);
+
+        float speedFraction = Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / (tuning.maxForwardSpeed * maxSpeedMultiplier));
         aimPoint.UpdateAim(speedFraction, deltaTime);
         AlignModelToGround(deltaTime);
 
@@ -54,6 +64,24 @@ public class KartMotor : MonoBehaviour
                                      sphereRadius + tuning.groundCheckExtraDistance,
                                      tuning.trackLayers, QueryTriggerInteraction.Ignore);
         groundNormal = isGrounded ? hit.normal : Vector3.up;
+
+        if (isGrounded)
+        {
+            SurfaceZone zone = hit.collider.GetComponentInParent<SurfaceZone>();
+            CurrentSurface = zone != null && zone.SurfaceType != null ? zone.SurfaceType : defaultSurface;
+        }
+    }
+
+    void BlendSurfaceMultipliers(float deltaTime)
+    {
+        float targetMaxSpeed = CurrentSurface != null ? CurrentSurface.maxSpeedMultiplier : 1f;
+        float targetAcceleration = CurrentSurface != null ? CurrentSurface.accelerationMultiplier : 1f;
+        float targetGrip = CurrentSurface != null ? CurrentSurface.gripMultiplier : 1f;
+
+        float blend = 1f - Mathf.Exp(-tuning.surfaceBlendPerSecond * deltaTime);
+        maxSpeedMultiplier = Mathf.Lerp(maxSpeedMultiplier, targetMaxSpeed, blend);
+        accelerationMultiplier = Mathf.Lerp(accelerationMultiplier, targetAcceleration, blend);
+        gripMultiplier = Mathf.Lerp(gripMultiplier, targetGrip, blend);
     }
 
     void AlignModelToGround(float deltaTime)
@@ -91,7 +119,7 @@ public class KartMotor : MonoBehaviour
         Vector3 remainingVelocity = velocity - heading * forwardSpeed - rightOfHeading * sidewaysSpeed;
 
         forwardSpeed = ApplyThrottleAndBrake(forwardSpeed, deltaTime);
-        float gripSmoothing = 1f - Mathf.Exp(-tuning.sidewaysGripPerSecond * deltaTime);
+        float gripSmoothing = 1f - Mathf.Exp(-tuning.sidewaysGripPerSecond * gripMultiplier * deltaTime);
         sidewaysSpeed = Mathf.Lerp(sidewaysSpeed, 0f, gripSmoothing);
 
         sphereBody.linearVelocity = heading * forwardSpeed + rightOfHeading * sidewaysSpeed + remainingVelocity;
@@ -102,6 +130,8 @@ public class KartMotor : MonoBehaviour
     {
         float accelerate = inputReader.AccelerateInput;
         float brakeReverse = inputReader.BrakeReverseInput;
+        float maxForwardSpeed = tuning.maxForwardSpeed * maxSpeedMultiplier;
+        float maxReverseSpeed = tuning.maxReverseSpeed * maxSpeedMultiplier;
         bool accelerateHeld = accelerate > 0.05f;
         bool brakeHeld = brakeReverse > 0.05f;
 
@@ -113,14 +143,14 @@ public class KartMotor : MonoBehaviour
             }
             else
             {
-                float speedFraction = Mathf.Clamp01(speed / tuning.maxForwardSpeed);
+                float speedFraction = Mathf.Clamp01(speed / maxForwardSpeed);
                 float curve = tuning.accelerationMultiplierBySpeedFraction.Evaluate(speedFraction);
-                speed += tuning.forwardAcceleration * curve * accelerate * deltaTime;
+                speed += tuning.forwardAcceleration * accelerationMultiplier * curve * accelerate * deltaTime;
             }
         }
         else if (brakeHeld && !accelerateHeld && speed <= tuning.reverseEngageSpeed)
         {
-            speed -= tuning.reverseAcceleration * brakeReverse * deltaTime; // reverse
+            speed -= tuning.reverseAcceleration * accelerationMultiplier * brakeReverse * deltaTime; // reverse
         }
         else if (brakeHeld)
         {
@@ -131,6 +161,6 @@ public class KartMotor : MonoBehaviour
             speed = Mathf.MoveTowards(speed, 0f, tuning.coastDeceleration * deltaTime);
         }
 
-        return Mathf.Clamp(speed, -tuning.maxReverseSpeed, tuning.maxForwardSpeed);
+        return Mathf.Clamp(speed, -maxReverseSpeed, maxForwardSpeed);
     }
 }

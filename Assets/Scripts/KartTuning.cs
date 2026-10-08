@@ -37,4 +37,8 @@ public class KartTuning : ScriptableObject
     public float groundCheckExtraDistance = 0.3f;
     public float extraDownwardAcceleration = 15f;
     public float modelAlignToGroundPerSecond = 12f;
+
+    [Header("Surfaces")]
+    [Tooltip("How quickly the kart's handling blends to a new surface. Higher = snappier.")]
+    public float surfaceBlendPerSecond = 8f;
 }
