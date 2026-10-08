@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class KartSelectorSpin : MonoBehaviour
 {
@@ -47,18 +48,24 @@ public class KartSelectorSpin : MonoBehaviour
 
         void HandleInput()
         {
-            if (Input.GetMouseButtonDown(0))
+            Mouse mouse = Mouse.current;
+            Keyboard keyboard = Keyboard.current;
+
+            if (mouse != null)
             {
-                isDragging = true;
-                lastMousePos = Input.mousePosition;
+                if (mouse.leftButton.wasPressedThisFrame)
+                {
+                    isDragging = true;
+                    lastMousePos = mouse.position.ReadValue();
+                }
+
+                if (mouse.leftButton.wasReleasedThisFrame)
+                {
+                    isDragging = false;
+                }
             }
 
-            if (Input.GetMouseButtonUp(0))
-            {
-                isDragging = false;
-            }
-
-            if (Input.GetKeyDown(KeyCode.Space) && !isSpinning && !isDragging)
+            if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame && !isSpinning && !isDragging)
             {
                 isSpinning = true;
                 spinTimer = 0f;
@@ -73,8 +80,11 @@ public class KartSelectorSpin : MonoBehaviour
 
         void HandleDragRotation()
         {
-            Vector2 mouseDelta = (Vector2)Input.mousePosition - lastMousePos;
-            lastMousePos = Input.mousePosition;
+            if (Mouse.current == null) return;
+
+            Vector2 mousePos = Mouse.current.position.ReadValue();
+            Vector2 mouseDelta = mousePos - lastMousePos;
+            lastMousePos = mousePos;
 
             // Horizontal drag → Y-axis rotation
             float yRotation = -mouseDelta.x * dragSensitivity;

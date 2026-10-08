@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using TMPro;
 using System.Linq;
@@ -33,19 +34,24 @@ public class selector : MonoBehaviour
     {
         currentTimer += Time.deltaTime;
 
-        if (Input.GetKeyDown(KeyCode.RightArrow) || currentTimer >= timer)
+        Keyboard keyboard = Keyboard.current;
+        bool right = keyboard != null && keyboard.rightArrowKey.wasPressedThisFrame;
+        bool left = keyboard != null && keyboard.leftArrowKey.wasPressedThisFrame;
+        bool down = keyboard != null && keyboard.downArrowKey.wasPressedThisFrame;
+
+        if (right || currentTimer >= timer)
         {
             currentIndex = (currentIndex + 1) % kartData.Count;
             ReplaceKart(currentIndex);
             currentTimer = 0f;
         }
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        else if (left)
         {
             currentIndex = (currentIndex - 1 + kartData.Count) % kartData.Count;
             ReplaceKart(currentIndex);
         }
 
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        else if (down)
         {
             if(timing)
             {
