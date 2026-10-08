@@ -1803,14 +1803,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   textField: {fileID: 326906138}
   kartData:
-  - kartPrefab: {fileID: 7766124886197761205, guid: 8631101bac56797409590bfd5241a3b4, type: 3}
-    kartIcon: {fileID: 0}
-  - kartPrefab: {fileID: 3714199970665998571, guid: 92b30d41169e956469f89aa8857ed813, type: 3}
-    kartIcon: {fileID: 0}
   - kartPrefab: {fileID: 4564889877560951081, guid: df7d3fce2714c8e47967de237d50a65f, type: 3}
     kartIcon: {fileID: 0}
+  - kartPrefab: {fileID: 4564889877560951081, guid: 59bc3d1a589029340a7db05a2950b160, type: 3}
+    kartIcon: {fileID: 0}
+  - kartPrefab: {fileID: 4564889877560951081, guid: 47bdf854aa0b0c046b8f55f081bfc424, type: 3}
+    kartIcon: {fileID: 0}
   timer: 400
-  trackSceneName: KartTestTrack
+  trackScene:
+    sceneAsset: {fileID: 102900000, guid: 113f488b5621b7642a1cfd2e9c06c5b0, type: 3}
+    scenePath: Assets/Scenes/track_test.unity
   nextAction: {fileID: 7476244043514120974, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   previousAction: {fileID: 2411907206095950430, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   toggleTimerAction: {fileID: 1781555164194001046, guid: 35845fe01580c41289b024647b1d1c53, type: 3}

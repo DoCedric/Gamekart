@@ -26,7 +26,7 @@ public class selector : MonoBehaviour
     private Boolean timing = true;
 
     [Header("Flow")]
-    [SerializeField] private string trackSceneName = "KartTestTrack";
+    [SerializeField] private SceneReference trackScene;
     private bool confirmed = false;
 
     [Header("Input")]
@@ -100,9 +100,15 @@ public class selector : MonoBehaviour
         if (kartData.Count == 0 || kartData[currentIndex].kartPrefab == null)
             return;
 
+        if (string.IsNullOrEmpty(trackScene.ScenePath))
+        {
+            Debug.LogWarning("selector: no track scene assigned.", this);
+            return;
+        }
+
         confirmed = true;
         KartSelection.SelectedKartPrefab = kartData[currentIndex].kartPrefab;
-        SceneManager.LoadScene(trackSceneName);
+        SceneManager.LoadScene(trackScene.ScenePath);
     }
 
     void ReplaceKart(int index)
