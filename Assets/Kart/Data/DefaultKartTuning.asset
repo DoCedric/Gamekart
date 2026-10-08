@@ -60,5 +60,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   groundCheckExtraDistance: 0.3
-  extraDownwardAcceleration: 15
+  extraDownwardAcceleration: 30
   modelAlignToGroundPerSecond: 12
+  surfaceBlendPerSecond: 8
