@@ -1,0 +1,26 @@
+:root {
+    -unity-font-definition: url("project://database/Assets/UI/Font/LuckiestGuy-Regular.ttf?fileID=12800000&guid=31399da74fbd4c44e8501c8dec03931f&type=3#LuckiestGuy-Regular");
+    -unity-font-style: normal;
+    color: rgb(255, 255, 255);
+}
+
+.position {
+    font-size: 120px;
+}
+
+.time {
+    -unity-text-align: upper-right;
+    font-size: 50px;
+    -unity-font-style: normal;
+}
+
+.countdown {
+    position: absolute;
+    -unity-text-align: middle-center;
+    font-size: 120px;
+    left: 50%;
+    top: 50%;
+    flex-basis: 0;
+    margin-left: -50px;
+    margin-top: -50px;
+}
