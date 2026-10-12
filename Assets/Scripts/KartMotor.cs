@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(KartInputReader), typeof(KartAimPoint))]
+[RequireComponent(typeof(KartInputSource), typeof(KartAimPoint))]
 public class KartMotor : MonoBehaviour
 {
     [SerializeField] KartTuning tuning;
@@ -20,14 +20,14 @@ public class KartMotor : MonoBehaviour
     float accelerationMultiplier = 1f;
     float gripMultiplier = 1f;
 
-    KartInputReader inputReader;
+    KartInputSource inputReader;
     KartAimPoint aimPoint;
     bool isGrounded;
     Vector3 groundNormal = Vector3.up;
 
     void Awake()
     {
-        inputReader = GetComponent<KartInputReader>();
+        inputReader = GetComponent<KartInputSource>();
         aimPoint = GetComponent<KartAimPoint>();
     }
 

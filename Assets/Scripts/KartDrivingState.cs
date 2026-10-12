@@ -14,7 +14,7 @@ public static class KartDrivingState
     {
         foreach (KartMotor motor in kart.GetComponentsInChildren<KartMotor>(true))
             motor.enabled = drivingEnabled;
-        foreach (KartInputReader input in kart.GetComponentsInChildren<KartInputReader>(true))
+        foreach (KartInputSource input in kart.GetComponentsInChildren<KartInputSource>(true))
             input.enabled = drivingEnabled;
         foreach (KartAimReticle reticle in kart.GetComponentsInChildren<KartAimReticle>(true))
             reticle.enabled = drivingEnabled;

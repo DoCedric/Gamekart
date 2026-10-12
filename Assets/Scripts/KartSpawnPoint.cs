@@ -9,6 +9,8 @@ public class KartSpawnPoint : MonoBehaviour
     [Tooltip("Used when no kart was selected, e.g. when pressing Play directly in the track scene.")]
     [SerializeField] GameObject fallbackKartPrefab;
     [SerializeField] KartCameraFollow cameraFollow;
+    [Tooltip("Optional. Found automatically if left empty; the player is simply not timed when the scene has none.")]
+    [SerializeField] RaceManager raceManager;
 
     void Start()
     {
@@ -24,6 +26,14 @@ public class KartSpawnPoint : MonoBehaviour
 
         GameObject kart = Instantiate(prefab, transform.position, transform.rotation);
         KartDrivingState.SetDrivingEnabled(kart, true);
+
+        if (raceManager == null) raceManager = FindFirstObjectByType<RaceManager>();
+        if (raceManager != null)
+        {
+            Racer racer = kart.AddComponent<Racer>();
+            racer.Init("Player", true);
+            raceManager.Register(racer);
+        }
 
         if (cameraFollow != null)
             cameraFollow.target = KartDrivingState.FindCameraTarget(kart);

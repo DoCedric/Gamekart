@@ -1,15 +1,19 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class KartInputReader : MonoBehaviour
+public class KartInputReader : KartInputSource
 {
     [SerializeField] InputActionReference steerAction;
     [SerializeField] InputActionReference accelerateAction;
     [SerializeField] InputActionReference brakeReverseAction;
 
-    public float SteerInput { get; private set; }        // -1 = full left, +1 = full right
-    public float AccelerateInput { get; private set; }   // 0 to 1
-    public float BrakeReverseInput { get; private set; } // 0 to 1
+    float steerInput;
+    float accelerateInput;
+    float brakeReverseInput;
+
+    public override float SteerInput => steerInput;
+    public override float AccelerateInput => accelerateInput;
+    public override float BrakeReverseInput => brakeReverseInput;
 
     void OnEnable()
     {
@@ -27,8 +31,8 @@ public class KartInputReader : MonoBehaviour
 
     void Update()
     {
-        SteerInput = Mathf.Clamp(steerAction.action.ReadValue<float>(), -1f, 1f);
-        AccelerateInput = Mathf.Clamp01(accelerateAction.action.ReadValue<float>());
-        BrakeReverseInput = Mathf.Clamp01(brakeReverseAction.action.ReadValue<float>());
+        steerInput = Mathf.Clamp(steerAction.action.ReadValue<float>(), -1f, 1f);
+        accelerateInput = Mathf.Clamp01(accelerateAction.action.ReadValue<float>());
+        brakeReverseInput = Mathf.Clamp01(brakeReverseAction.action.ReadValue<float>());
     }
 }

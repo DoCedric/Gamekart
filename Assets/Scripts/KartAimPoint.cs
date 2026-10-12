@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(KartInputReader))]
+[RequireComponent(typeof(KartInputSource))]
 public class KartAimPoint : MonoBehaviour
 {
     [SerializeField] KartTuning tuning;
@@ -11,9 +11,9 @@ public class KartAimPoint : MonoBehaviour
     public bool AimRayHitTrack { get; private set; }
     public float AimYawDegrees { get; private set; }
 
-    KartInputReader inputReader;
+    KartInputSource inputReader;
 
-    void Awake() => inputReader = GetComponent<KartInputReader>();
+    void Awake() => inputReader = GetComponent<KartInputSource>();
 
     // Called by KartMotor once per FixedUpdate, before steering.
     public void UpdateAim(float speedFraction, float deltaTime)
