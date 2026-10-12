@@ -2,7 +2,12 @@
     <Style src="project://database/Assets/UI/UID_Style.uss?fileID=7433441132597879392&amp;guid=29af387596a4a0848829a2c60487a214&amp;type=3#UID_Style"/>
     <ui:VisualElement style="flex-grow: 1; margin-left: 50px; margin-top: 50px; margin-right: 50px; margin-bottom: 50px; flex-direction: row; align-items: stretch; justify-content: space-between;">
         <ui:Label text="1st" name="position" class="position"/>
-        <ui:Label text="3&#10;" name="countdown" double-click-selects-word="true" class="countdown" style="white-space: nowrap;"/>
-        <ui:Label text="00:00:00" name="time" class="time"/>
+        <ui:VisualElement name="top-right" class="top-right">
+            <ui:Label text="00:00:00" name="time" class="time"/>
+            <ui:Label text="LAP 0/3" name="lap" class="lap"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="countdown-overlay" class="countdown-overlay" picking-mode="Ignore">
+        <ui:Label text="3" name="countdown" class="countDownEnd" picking-mode="Ignore"/>
     </ui:VisualElement>
 </ui:UXML>

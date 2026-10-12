@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,6 +17,8 @@ public class RacerState
     public RacerState(Racer racer) => Racer = racer;
 }
 
+public enum RaceState { Countdown, Racing, Finished }
+
 /// <summary>
 /// Put on an empty at the root of the track's checkpoints. Every Checkpoint that is a
 /// child of this object is used, in hierarchy order: the FIRST child is the finish/start
@@ -25,15 +28,25 @@ public class RacerState
 public class RaceManager : MonoBehaviour
 {
     [SerializeField, Min(1)] int totalLaps = 3;
+    [SerializeField, Min(1)] int countdownSeconds = 3;
     [SerializeField] bool logEvents;
 
     public int TotalLaps => totalLaps;
     public IReadOnlyList<Checkpoint> Checkpoints => checkpoints;
     public IReadOnlyList<RacerState> Racers => racers;
-    public float RaceTime => Time.time - raceStartTime;
+    public RaceState State { get; private set; } = RaceState.Countdown;
+
+    /// <summary>The number currently counted down (3, 2, 1), or 0 once the race has started.</summary>
+    public int CountdownValue { get; private set; }
+
+    /// <summary>Seconds since the start signal; 0 during the countdown.</summary>
+    public float RaceTime => State == RaceState.Countdown ? 0f : Time.time - raceStartTime;
 
     // Events for the UI and other systems to bind to.
-    public event Action<RacerState> LapStarted;     // lap number is racer.CurrentLap
+    public event Action<int> CountdownChanged;      // 3, 2, 1, then 0 = go
+    public event Action<RaceState> StateChanged;
+    public event Action<RacerState> RacerRegistered;
+    public event Action<RacerState> LapStarted;    // lap number is racer.CurrentLap
     public event Action<RacerState, float> LapCompleted; // racer, lap time
     public event Action<RacerState> LapProgressReset;    // crossed the line without every checkpoint
     public event Action<RacerState> RacerFinished;
@@ -54,7 +67,33 @@ public class RaceManager : MonoBehaviour
             checkpoint.Crossed += OnCheckpointCrossed;
     }
 
-    void Start() => raceStartTime = Time.time; // becomes the countdown go-moment in a later step
+    void Start() => StartCoroutine(CountdownRoutine());
+
+    IEnumerator CountdownRoutine()
+    {
+        for (int value = countdownSeconds; value >= 1; value--)
+        {
+            CountdownValue = value;
+            Log($"Countdown {value}");
+            CountdownChanged?.Invoke(value);
+            yield return new WaitForSeconds(1f);
+        }
+
+        raceStartTime = Time.time;
+        CountdownValue = 0;
+        SetState(RaceState.Racing);
+        foreach (RacerState state in racers)
+            KartDrivingState.SetDrivingEnabled(state.Racer.gameObject, true);
+
+        Log("Go!");
+        CountdownChanged?.Invoke(0);
+    }
+
+    void SetState(RaceState newState)
+    {
+        State = newState;
+        StateChanged?.Invoke(newState);
+    }
 
     void OnDestroy()
     {
@@ -71,6 +110,12 @@ public class RaceManager : MonoBehaviour
         var state = new RacerState(racer);
         racers.Add(state);
         stateByRacer.Add(racer, state);
+
+        // Karts wait on the grid until the start signal.
+        if (State == RaceState.Countdown)
+            KartDrivingState.SetDrivingEnabled(racer.gameObject, false);
+
+        RacerRegistered?.Invoke(state);
         return state;
     }
 
@@ -81,6 +126,8 @@ public class RaceManager : MonoBehaviour
 
     void OnCheckpointCrossed(Checkpoint checkpoint, Rigidbody body)
     {
+        if (State != RaceState.Racing) return;
+
         Racer racer = body.GetComponentInParent<Racer>();
         if (racer == null || !stateByRacer.TryGetValue(racer, out RacerState state) || state.Finished) return;
 
@@ -127,7 +174,11 @@ public class RaceManager : MonoBehaviour
                 state.FinishTime = now;
                 Log($"{state.Racer.DisplayName} finished the race in {now:F2}s");
                 RacerFinished?.Invoke(state);
-                if (racers.TrueForAll(r => r.Finished)) AllRacersFinished?.Invoke();
+                if (racers.TrueForAll(r => r.Finished))
+                {
+                    SetState(RaceState.Finished);
+                    AllRacersFinished?.Invoke();
+                }
                 return;
             }
         }
