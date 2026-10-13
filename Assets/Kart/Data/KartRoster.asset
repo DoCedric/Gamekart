@@ -19,3 +19,5 @@ MonoBehaviour:
     kartIcon: {fileID: 0}
   - kartPrefab: {fileID: 4564889877560951081, guid: 47bdf854aa0b0c046b8f55f081bfc424, type: 3}
     kartIcon: {fileID: 0}
+  - kartPrefab: {fileID: 4564889877560951081, guid: 966e2072e2a845c488b9d7a85258c709, type: 3}
+    kartIcon: {fileID: 0}

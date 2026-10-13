@@ -6,8 +6,10 @@ public class KartMotor : MonoBehaviour
     [SerializeField] KartTuning tuning;
     [SerializeField] Rigidbody sphereBody;
     [SerializeField] Transform kartModel;
-    [SerializeField] float sphereRadius = 0.5f;
-    [SerializeField] float modelHeightBelowSphereCenter = 0.5f;
+    [Tooltip("Must match the SphereBody's collider radius.")]
+    [SerializeField] float sphereRadius = 1f;
+    [Tooltip("Normally equal to the sphere radius, so the wheels sit on the road.")]
+    [SerializeField] float modelHeightBelowSphereCenter = 1f;
 
     [Tooltip("Used when the ground under the kart has no SurfaceZone. Leave empty for neutral handling.")]
     [SerializeField] SurfaceType defaultSurface;

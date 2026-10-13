@@ -25,6 +25,7 @@ public static class KartMaker
     const string SlipperyMaterialPath = "Assets/Kart/Data/KartSphereSlippery.physicsMaterial";
     const string InputActionsPath = "Assets/Kart/Input/KartControls.inputactions";
 
+    const float SphereRadius = 1f; // sphere collider radius; also the motor's sphereRadius and model height offset
     const string TrackLayerName = "Track";
     const string KartLayerName = "Kart";
 
@@ -109,7 +110,7 @@ public static class KartMaker
         // actually move, per the spec's kart hierarchy.
         GameObject kart = new GameObject("Kart");
         kart.layer = kartLayer;
-        kart.transform.position = Vector3.up; // 1m up, so it settles onto whatever track you drag it onto.
+        kart.transform.position = Vector3.up * (SphereRadius + 0.5f); // clear of the ground, so it settles onto whatever track you drag it onto.
 
         Rigidbody sphereBody = BuildSphereBody(kart.transform, kartLayer);
         Transform kartModel = BuildKartModel(kart.transform, kartLayer);
@@ -130,8 +131,8 @@ public static class KartMaker
             ("tuning", tuning),
             ("sphereBody", sphereBody),
             ("kartModel", kartModel));
-        SetPrivateFloat(motor, "sphereRadius", 0.5f);
-        SetPrivateFloat(motor, "modelHeightBelowSphereCenter", 0.5f);
+        SetPrivateFloat(motor, "sphereRadius", SphereRadius);
+        SetPrivateFloat(motor, "modelHeightBelowSphereCenter", SphereRadius);
 
         BuildAimReticle(kart.transform, aimPoint);
         BuildWheelVisuals(kart, kartModel, kartLayer, motor, aimPoint);
@@ -154,7 +155,7 @@ public static class KartMaker
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 
         SphereCollider collider = go.AddComponent<SphereCollider>();
-        collider.radius = 0.5f;
+        collider.radius = SphereRadius;
         collider.sharedMaterial = LoadOrCreateSlipperyMaterial();
 
         return rb;
