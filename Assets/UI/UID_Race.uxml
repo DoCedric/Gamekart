@@ -7,7 +7,7 @@
             <ui:Label text="LAP 0/3" name="lap" class="lap"/>
         </ui:VisualElement>
     </ui:VisualElement>
-    <ui:VisualElement name="countdown-overlay" class="countdown-overlay" picking-mode="Ignore">
-        <ui:Label text="3" name="countdown" class="countDownEnd" picking-mode="Ignore"/>
+    <ui:VisualElement name="countdown-overlay" picking-mode="Ignore" class="countdown-overlay">
+        <ui:Label text="3" name="countdown" picking-mode="Ignore" class="countDownEnd" style="color: rgb(255, 232, 0); -unity-text-outline-width: 10px; -unity-text-outline-color: rgb(255, 116, 0); text-shadow: 0 0 0 rgb(0, 0, 0);"/>
     </ui:VisualElement>
 </ui:UXML>
