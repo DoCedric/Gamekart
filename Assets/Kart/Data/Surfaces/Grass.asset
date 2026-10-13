@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea12fc35639751c4a9a3fe9fa868bfef, type: 3}
   m_Name: Grass
   m_EditorClassIdentifier: Assembly-CSharp::SurfaceType
-  maxSpeedMultiplier: 0.5
-  accelerationMultiplier: 0.5
-  gripMultiplier: 0.6
+  maxSpeedMultiplier: 0.3
+  accelerationMultiplier: 0.3
+  gripMultiplier: 1
