@@ -8,6 +8,9 @@ public class RacerState
 {
     public Racer Racer { get; }
     public int NextCheckpoint { get; internal set; }  // index into the manager's checkpoint list
+    public int LastCheckpoint { get; internal set; } = -1; // last gate passed in order; -1 = none yet
+    public Vector3 StartPosition { get; internal set; }    // where the kart stood when it registered
+    public Quaternion StartRotation { get; internal set; }
     public int CurrentLap { get; internal set; }      // 0 = hasn't crossed the start line yet
     public bool Finished { get; internal set; }
     public float FinishTime { get; internal set; }    // race clock when the last lap was completed
@@ -108,6 +111,9 @@ public class RaceManager : MonoBehaviour
         if (stateByRacer.TryGetValue(racer, out RacerState existing)) return existing;
 
         var state = new RacerState(racer);
+        Rigidbody sphereBody = racer.GetComponentInChildren<Rigidbody>();
+        state.StartPosition = sphereBody != null ? sphereBody.position : racer.transform.position;
+        state.StartRotation = KartDrivingState.FindCameraTarget(racer.gameObject).rotation;
         racers.Add(state);
         stateByRacer.Add(racer, state);
 
@@ -124,17 +130,50 @@ public class RaceManager : MonoBehaviour
     /// <summary>Time in the current lap, or 0 before the first lap starts.</summary>
     public float CurrentLapTime(RacerState state) => state.CurrentLap > 0 && !state.Finished ? RaceTime - state.LapStartTime : 0f;
 
+    /// <summary>
+    /// Where to put a racer back on the track: the last gate it passed in order, facing the
+    /// driving direction, or its starting spot if it hasn't passed one. The height is only
+    /// approximate, so the caller should snap it to the ground.
+    /// </summary>
+    public void GetRespawnPose(RacerState state, out Vector3 position, out Quaternion rotation)
+    {
+        if (state.LastCheckpoint < 0)
+        {
+            position = state.StartPosition;
+            rotation = state.StartRotation;
+            return;
+        }
+
+        Checkpoint gate = checkpoints[state.LastCheckpoint];
+        position = gate.GetPointAcross(0f);
+        Vector3 forward = Vector3.ProjectOnPlane(gate.transform.forward, Vector3.up);
+        rotation = Quaternion.LookRotation(forward.sqrMagnitude > 0.001f ? forward : Vector3.forward, Vector3.up);
+    }
+
     void OnCheckpointCrossed(Checkpoint checkpoint, Rigidbody body)
     {
-        if (State != RaceState.Racing) return;
+        if (State == RaceState.Countdown) return;
 
         Racer racer = body.GetComponentInParent<Racer>();
-        if (racer == null || !stateByRacer.TryGetValue(racer, out RacerState state) || state.Finished) return;
+        if (racer == null || !stateByRacer.TryGetValue(racer, out RacerState state)) return;
 
         // Driving through a gate backwards never counts.
         if (Vector3.Dot(body.linearVelocity, checkpoint.transform.forward) <= 0f) return;
 
         int index = checkpoints.IndexOf(checkpoint);
+
+        // A racer that has finished keeps its place; only its next gate moves on, so a kart
+        // that keeps driving (an AI during the victory scene) always has somewhere to go.
+        if (state.Finished)
+        {
+            if (index == state.NextCheckpoint)
+            {
+                state.LastCheckpoint = index;
+                state.NextCheckpoint = (index + 1) % checkpoints.Count;
+            }
+            return;
+        }
+
         bool isFinishLine = index == 0;
 
         if (index == state.NextCheckpoint)
@@ -146,6 +185,7 @@ public class RaceManager : MonoBehaviour
         {
             // Crossed the line without every checkpoint: the lap's progress starts over.
             state.NextCheckpoint = checkpoints.Count > 1 ? 1 : 0;
+            state.LastCheckpoint = 0;
             Log($"{racer.DisplayName} missed checkpoints, lap {state.CurrentLap} progress reset");
             LapProgressReset?.Invoke(state);
         }
@@ -154,12 +194,14 @@ public class RaceManager : MonoBehaviour
 
     void AdvanceCheckpoint(RacerState state)
     {
+        state.LastCheckpoint = state.NextCheckpoint;
         state.NextCheckpoint = (state.NextCheckpoint + 1) % checkpoints.Count;
     }
 
     void CrossFinishLine(RacerState state)
     {
         float now = RaceTime;
+        state.LastCheckpoint = 0;
 
         if (state.CurrentLap > 0)
         {
@@ -172,6 +214,7 @@ public class RaceManager : MonoBehaviour
             {
                 state.Finished = true;
                 state.FinishTime = now;
+                state.NextCheckpoint = checkpoints.Count > 1 ? 1 : 0; // keep driving past the line
                 Log($"{state.Racer.DisplayName} finished the race in {now:F2}s");
                 RacerFinished?.Invoke(state);
                 if (racers.TrueForAll(r => r.Finished))

@@ -6,18 +6,13 @@ using System.Collections.Generic;
 using TMPro;
 using System.Linq;
 
-[Serializable]
-public class kartSelectorData
-{
-    public GameObject kartPrefab;
-    public Sprite kartIcon;
-}
-
 public class selector : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI textField;
 
-    [SerializeField] private List<kartSelectorData> kartData;
+    [SerializeField] private KartRoster roster;
+    private IReadOnlyList<kartSelectorData> kartData =>
+        roster != null ? roster.Karts : Array.Empty<kartSelectorData>();
     private int currentIndex = 0;
     private Transform currentKartInstance;
 

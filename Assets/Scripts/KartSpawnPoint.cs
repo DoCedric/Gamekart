@@ -12,6 +12,13 @@ public class KartSpawnPoint : MonoBehaviour
     [Tooltip("Optional. Found automatically if left empty; the player is simply not timed when the scene has none.")]
     [SerializeField] RaceManager raceManager;
 
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, 0.6f);
+        Gizmos.DrawLine(transform.position, transform.position + transform.forward * 2f);
+    }
+
     void Start()
     {
         GameObject prefab = KartSelection.SelectedKartPrefab != null
@@ -36,6 +43,6 @@ public class KartSpawnPoint : MonoBehaviour
         }
 
         if (cameraFollow != null)
-            cameraFollow.target = KartDrivingState.FindCameraTarget(kart);
+            cameraFollow.SetTarget(KartDrivingState.FindCameraTarget(kart));
     }
 }

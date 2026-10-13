@@ -14,6 +14,15 @@ public class KartMotor : MonoBehaviour
 
     public float ForwardSpeed { get; private set; } // signed meters per second along the heading
     public SurfaceType CurrentSurface { get; private set; }
+    public KartTuning Tuning => tuning;
+
+    // Per-kart scaling on top of the shared tuning asset, e.g. for AI difficulty. 1 = the kart's own handling.
+    public float TopSpeedScale { get; set; } = 1f;
+    public float AccelerationScale { get; set; } = 1f;
+
+    /// <summary>Top speed on neutral ground, including the per-kart scale.</summary>
+    public float MaxForwardSpeed => tuning.maxForwardSpeed * TopSpeedScale;
+    public float SpeedFraction => Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / (MaxForwardSpeed * maxSpeedMultiplier));
 
     // Blended toward the current surface so handling doesn't snap at surface edges.
     float maxSpeedMultiplier = 1f;
@@ -37,8 +46,7 @@ public class KartMotor : MonoBehaviour
         CheckGround();
         BlendSurfaceMultipliers(deltaTime);
 
-        float speedFraction = Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / (tuning.maxForwardSpeed * maxSpeedMultiplier));
-        aimPoint.UpdateAim(speedFraction, deltaTime);
+        aimPoint.UpdateAim(SpeedFraction, deltaTime);
         AlignModelToGround(deltaTime);
 
         if (isGrounded)
@@ -130,7 +138,7 @@ public class KartMotor : MonoBehaviour
     {
         float accelerate = inputReader.AccelerateInput;
         float brakeReverse = inputReader.BrakeReverseInput;
-        float maxForwardSpeed = tuning.maxForwardSpeed * maxSpeedMultiplier;
+        float maxForwardSpeed = MaxForwardSpeed * maxSpeedMultiplier;
         float maxReverseSpeed = tuning.maxReverseSpeed * maxSpeedMultiplier;
         bool accelerateHeld = accelerate > 0.05f;
         bool brakeHeld = brakeReverse > 0.05f;
@@ -145,7 +153,7 @@ public class KartMotor : MonoBehaviour
             {
                 float speedFraction = Mathf.Clamp01(speed / maxForwardSpeed);
                 float curve = tuning.accelerationMultiplierBySpeedFraction.Evaluate(speedFraction);
-                speed += tuning.forwardAcceleration * accelerationMultiplier * curve * accelerate * deltaTime;
+                speed += tuning.forwardAcceleration * AccelerationScale * accelerationMultiplier * curve * accelerate * deltaTime;
             }
         }
         else if (brakeHeld && !accelerateHeld && speed <= tuning.reverseEngageSpeed)

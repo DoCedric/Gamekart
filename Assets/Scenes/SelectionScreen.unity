@@ -1768,7 +1768,7 @@ GameObject:
   - component: {fileID: 1961220087}
   - component: {fileID: 1961220088}
   m_Layer: 0
-  m_Name: ADD_KART_HERE
+  m_Name: Roster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1802,13 +1802,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textField: {fileID: 326906138}
-  kartData:
-  - kartPrefab: {fileID: 4564889877560951081, guid: df7d3fce2714c8e47967de237d50a65f, type: 3}
-    kartIcon: {fileID: 0}
-  - kartPrefab: {fileID: 4564889877560951081, guid: 59bc3d1a589029340a7db05a2950b160, type: 3}
-    kartIcon: {fileID: 0}
-  - kartPrefab: {fileID: 4564889877560951081, guid: 47bdf854aa0b0c046b8f55f081bfc424, type: 3}
-    kartIcon: {fileID: 0}
+  roster: {fileID: 11400000, guid: 324cf271ba94ba94398b16e91819a208, type: 2}
   timer: 400
   trackScene:
     sceneAsset: {fileID: 102900000, guid: 113f488b5621b7642a1cfd2e9c06c5b0, type: 3}

@@ -21,6 +21,14 @@ public class Checkpoint : MonoBehaviour
 
     public Vector3 Center => box.transform.TransformPoint(box.center);
 
+    /// <summary>A point on the gate's centre line across the road: -1 = left edge, 0 = middle, +1 = right edge.</summary>
+    public Vector3 GetPointAcross(float t) =>
+        box.transform.TransformPoint(box.center + new Vector3(t * box.size.x * 0.5f, 0f, 0f));
+
+    /// <summary>Where a world position sits across the gate's width: -1 = left edge, 0 = middle, +1 = right edge.</summary>
+    public float GetLateralPosition(Vector3 worldPoint) =>
+        (box.transform.InverseTransformPoint(worldPoint) - box.center).x / (box.size.x * 0.5f);
+
     BoxCollider box;
     LineRenderer debugOutline;
     Material debugMaterial;
