@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd6bcc5e4e66fe34f849485ca050a962, type: 3}
   m_Name: AiDriverSettings
   m_EditorClassIdentifier: Assembly-CSharp::AiDriverSettings
-  topSpeedScale: 1.2
-  accelerationScale: 1.2
+  topSpeedScale: 1
+  accelerationScale: 1
   maxLateralOffset: 0.5
   startLaneDeviation: 0.1
   gatesToSettleOnLine: 3
@@ -26,6 +26,6 @@ MonoBehaviour:
   sharpCornerAngle: 70
   brakeLookAheadMeters: 30
   steerSlowdown: 0.3
-  stuckSpeed: 1
+  stuckSpeed: 2
   stuckSeconds: 3
-  stuckGraceSeconds: 2
+  stuckGraceSeconds: 3
