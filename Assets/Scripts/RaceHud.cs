@@ -19,6 +19,7 @@ public class RaceHud : MonoBehaviour
     PanelRenderer panelRenderer;
     Label timeLabel;
     Label lapLabel;
+    Label positionLabel;
     Label countdownLabel;
     Coroutine countdownAnimation;
     RacerState player;
@@ -28,6 +29,8 @@ public class RaceHud : MonoBehaviour
     int shownCentiseconds = -1;
     int shownLap = -1;
     int shownTotalLaps = -1;
+    int shownPosition = -1;
+    int shownRacerCount = -1;
 
     void OnEnable()
     {
@@ -68,12 +71,15 @@ public class RaceHud : MonoBehaviour
 
         timeLabel = root.Q<Label>("time");
         lapLabel = root.Q<Label>("lap");
+        positionLabel = root.Q<Label>("position");
         countdownLabel = root.Q<Label>("countdown");
 
         // Fresh labels: force the next Update to write their text.
         shownCentiseconds = -1;
         shownLap = -1;
         shownTotalLaps = -1;
+        shownPosition = -1;
+        shownRacerCount = -1;
 
         // Hidden unless a countdown is running; catches up if the UI was built after it began.
         if (countdownLabel != null) countdownLabel.style.display = DisplayStyle.None;
@@ -130,6 +136,16 @@ public class RaceHud : MonoBehaviour
             : raceManager.CurrentLapTime(player);
         UpdateTime(lapTime);
         UpdateLap(player.CurrentLap, raceManager.TotalLaps);
+        UpdatePosition(player.Position, raceManager.Racers.Count);
+    }
+
+    void UpdatePosition(int position, int racerCount)
+    {
+        if ((position == shownPosition && racerCount == shownRacerCount) || positionLabel == null) return;
+
+        shownPosition = position;
+        shownRacerCount = racerCount;
+        positionLabel.text = $"{position}/{racerCount}";
     }
 
     void UpdateTime(float seconds)

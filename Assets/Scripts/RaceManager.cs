@@ -9,6 +9,14 @@ public class RacerState
     public Racer Racer { get; }
     public int NextCheckpoint { get; internal set; }  // index into the manager's checkpoint list
     public int LastCheckpoint { get; internal set; } = -1; // last gate passed in order; -1 = none yet
+    public int Position { get; internal set; }             // 1 = leading; kept up to date by the manager
+
+    // Used to rank racers.
+    internal int Id;
+    internal Rigidbody Body;
+    internal int Progress;                  // how far through the lap: the next gate's index, or the lap's end
+    internal float DistanceToNextCheckpoint;
+
     public Vector3 StartPosition { get; internal set; }    // where the kart stood when it registered
     public Quaternion StartRotation { get; internal set; }
     public int CurrentLap { get; internal set; }      // 0 = hasn't crossed the start line yet
@@ -56,6 +64,7 @@ public class RaceManager : MonoBehaviour
     public event Action AllRacersFinished;
 
     readonly List<RacerState> racers = new List<RacerState>();
+    readonly List<RacerState> ranking = new List<RacerState>(); // same racers, kept sorted by race position
     readonly Dictionary<Racer, RacerState> stateByRacer = new Dictionary<Racer, RacerState>();
     readonly List<Checkpoint> checkpoints = new List<Checkpoint>();
     float raceStartTime;
@@ -71,6 +80,37 @@ public class RaceManager : MonoBehaviour
     }
 
     void Start() => StartCoroutine(CountdownRoutine());
+
+    void Update() => UpdatePositions();
+
+    // Ranks racers: finishers first (by finish time), then by lap, then by how far through the
+    // lap, then by who is closest to their next gate.
+    void UpdatePositions()
+    {
+        if (ranking.Count == 0 || checkpoints.Count == 0) return;
+
+        foreach (RacerState state in ranking)
+        {
+            state.Progress = state.NextCheckpoint == 0 ? checkpoints.Count : state.NextCheckpoint;
+            state.DistanceToNextCheckpoint = state.Body != null
+                ? Vector3.Distance(state.Body.position, checkpoints[state.NextCheckpoint].Center)
+                : 0f;
+        }
+
+        ranking.Sort(CompareRacers);
+        for (int i = 0; i < ranking.Count; i++) ranking[i].Position = i + 1;
+    }
+
+    static int CompareRacers(RacerState a, RacerState b)
+    {
+        if (a.Finished != b.Finished) return a.Finished ? -1 : 1;
+        if (a.Finished) return a.FinishTime.CompareTo(b.FinishTime);
+
+        int result = b.CurrentLap.CompareTo(a.CurrentLap);
+        if (result == 0) result = b.Progress.CompareTo(a.Progress);
+        if (result == 0) result = a.DistanceToNextCheckpoint.CompareTo(b.DistanceToNextCheckpoint);
+        return result != 0 ? result : a.Id.CompareTo(b.Id); // stable for exact ties
+    }
 
     IEnumerator CountdownRoutine()
     {
@@ -114,7 +154,11 @@ public class RaceManager : MonoBehaviour
         Rigidbody sphereBody = racer.GetComponentInChildren<Rigidbody>();
         state.StartPosition = sphereBody != null ? sphereBody.position : racer.transform.position;
         state.StartRotation = KartDrivingState.FindCameraTarget(racer.gameObject).rotation;
+        state.Body = sphereBody;
+        state.Id = racers.Count;
+        state.Position = racers.Count + 1;
         racers.Add(state);
+        ranking.Add(state);
         stateByRacer.Add(racer, state);
 
         // Karts wait on the grid until the start signal.
