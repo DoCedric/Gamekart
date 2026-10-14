@@ -15,6 +15,10 @@ public class KartTuning : ScriptableObject
     public float brakeDeceleration = 30f;
     public float coastDeceleration = 4f;
 
+    [Header("Boost")]
+    [Tooltip("How fast the raised speed limit falls back to normal after a boost (meters per second squared). Higher = shorter boost.")]
+    public float boostDecayPerSecond = 10f;
+
     [Header("Aim ray")]
     public float aimRayOriginHeight = 2.2f;
     public float maxAimYawDegreesAtLowSpeed = 40f;

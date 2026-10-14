@@ -26,10 +26,28 @@ public class KartMotor : MonoBehaviour
     public float MaxForwardSpeed => tuning.maxForwardSpeed * TopSpeedScale;
     public float SpeedFraction => Mathf.Clamp01(Mathf.Abs(ForwardSpeed) / (MaxForwardSpeed * maxSpeedMultiplier));
 
+    /// <summary>True while a boost is letting the kart go faster than its normal top speed.</summary>
+    public bool IsBoosting => boostCeiling > MaxForwardSpeed * maxSpeedMultiplier + 0.01f;
+
+    /// <summary>
+    /// Raises the kart's speed to the given fraction of its top speed (1 = top speed, 1.5 = 150%),
+    /// then lets it fall back by itself. Never slows the kart down.
+    /// </summary>
+    public void ApplyBoost(float fractionOfTopSpeed)
+    {
+        float targetSpeed = fractionOfTopSpeed * MaxForwardSpeed;
+        boostCeiling = Mathf.Max(boostCeiling, targetSpeed);
+        pendingBoostSpeed = Mathf.Max(pendingBoostSpeed, targetSpeed); // applied on the next grounded step
+    }
+
     // Blended toward the current surface so handling doesn't snap at surface edges.
     float maxSpeedMultiplier = 1f;
     float accelerationMultiplier = 1f;
     float gripMultiplier = 1f;
+
+    // Boost: the speed limit is temporarily raised to boostCeiling, which then decays back down.
+    float boostCeiling;
+    float pendingBoostSpeed;
 
     KartInputSource inputReader;
     KartAimPoint aimPoint;
@@ -47,6 +65,7 @@ public class KartMotor : MonoBehaviour
         float deltaTime = Time.fixedDeltaTime;
         CheckGround();
         BlendSurfaceMultipliers(deltaTime);
+        boostCeiling = Mathf.MoveTowards(boostCeiling, 0f, tuning.boostDecayPerSecond * deltaTime);
 
         aimPoint.UpdateAim(SpeedFraction, deltaTime);
         AlignModelToGround(deltaTime);
@@ -128,6 +147,12 @@ public class KartMotor : MonoBehaviour
         float sidewaysSpeed = Vector3.Dot(velocity, rightOfHeading);
         Vector3 remainingVelocity = velocity - heading * forwardSpeed - rightOfHeading * sidewaysSpeed;
 
+        if (pendingBoostSpeed > 0f)
+        {
+            forwardSpeed = Mathf.Max(forwardSpeed, pendingBoostSpeed);
+            pendingBoostSpeed = 0f;
+        }
+
         forwardSpeed = ApplyThrottleAndBrake(forwardSpeed, deltaTime);
         float gripSmoothing = 1f - Mathf.Exp(-tuning.sidewaysGripPerSecond * gripMultiplier * deltaTime);
         sidewaysSpeed = Mathf.Lerp(sidewaysSpeed, 0f, gripSmoothing);
@@ -140,7 +165,8 @@ public class KartMotor : MonoBehaviour
     {
         float accelerate = inputReader.AccelerateInput;
         float brakeReverse = inputReader.BrakeReverseInput;
-        float maxForwardSpeed = MaxForwardSpeed * maxSpeedMultiplier;
+        float normalMaxForwardSpeed = MaxForwardSpeed * maxSpeedMultiplier;
+        float maxForwardSpeed = Mathf.Max(normalMaxForwardSpeed, boostCeiling); // a boost lifts the limit for a while
         float maxReverseSpeed = tuning.maxReverseSpeed * maxSpeedMultiplier;
         bool accelerateHeld = accelerate > 0.05f;
         bool brakeHeld = brakeReverse > 0.05f;
@@ -153,7 +179,7 @@ public class KartMotor : MonoBehaviour
             }
             else
             {
-                float speedFraction = Mathf.Clamp01(speed / maxForwardSpeed);
+                float speedFraction = Mathf.Clamp01(speed / normalMaxForwardSpeed);
                 float curve = tuning.accelerationMultiplierBySpeedFraction.Evaluate(speedFraction);
                 speed += tuning.forwardAcceleration * AccelerationScale * accelerationMultiplier * curve * accelerate * deltaTime;
             }

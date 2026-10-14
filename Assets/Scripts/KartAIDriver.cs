@@ -104,7 +104,8 @@ public class KartAIDriver : KartInputSource
     {
         float speedError = targetSpeed - motor.ForwardSpeed;
         accelerateInput = Mathf.Clamp01(speedError / 2f);
-        brakeReverseInput = Mathf.Clamp01((-speedError - 1f) / 4f); // only brakes when clearly too fast
+        // Only brakes when clearly too fast, and never while a boost is carrying it past top speed.
+        brakeReverseInput = motor.IsBoosting ? 0f : Mathf.Clamp01((-speedError - 1f) / 4f);
     }
 
     // Not moving for a while while the race is on: ask for a respawn at the last checkpoint.
