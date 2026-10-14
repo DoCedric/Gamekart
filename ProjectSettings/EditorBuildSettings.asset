@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Menus/SelectionScreen.unity
+    path: Assets/Menu-Scenes/SelectionScreen.unity
     guid: f7f3dacf173651e43a15e2db625bea4e
   - enabled: 1
     path: Assets/Race/Tracks/track_test.unity
