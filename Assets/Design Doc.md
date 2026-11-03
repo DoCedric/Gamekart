@@ -33,6 +33,11 @@ Input source  ->  Aim point  ->  Pure-pursuit steering  ->  Motor  ->  Sphere ve
 ### Size
 The sphere's radius is **1 m** on every kart. The motor's `sphereRadius` and `modelHeightBelowSphereCenter` must match it (the KartMaker sets all three from one constant). Kart-vs-kart collision is sphere vs sphere only. A long kart's body can visually overlap another kart.
 
+### Wheels and animation
+- **Wheels belong to code.** `KartWheelVisuals` spins and steers the four wheel transforms every frame, after the Animator, starting from their rest pose. A wheel's local Y must be its axle (a Blender bone pointing sideways out of the hub). Left and right may mirror, roll doesn't matter, and the front wheels steer around their own origin (no separate pivot). Animation keys on wheel bones are overwritten.
+- **Everything else belongs to the Animator.** `KartAnimatorParameters` on the kart root feeds the driving state into the Animator on the model under `KartModel` (Apply Root Motion off, never on `KartModel` itself). Parameters, all optional: `Speed`, `SpeedFraction`, `Steer` (floats), `IsDriving`, `IsGrounded`, `IsBoosting` (bools), `Respawn`, `Respawned` (triggers). `IsDriving` is false on the selection screen and during the countdown.
+- **Students build the controller themselves**, following `Assets/Karts/Kart_Student_Guide.md`. Expected minimum: a 2D blend tree on `SpeedFraction` x `Steer` with idle at (0,0), racing at (1,0) and lean left/right at (1,-1)/(1,1).
+
 ## 3. Surfaces
 
 - **`SurfaceType`** is an asset with three multipliers: top speed, acceleration and grip.

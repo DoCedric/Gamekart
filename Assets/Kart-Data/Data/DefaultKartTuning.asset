@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ad1720c6237e974e8c4399cc52b8bf1, type: 3}
   m_Name: DefaultKartTuning
   m_EditorClassIdentifier: Assembly-CSharp::KartTuning
-  maxForwardSpeed: 50
-  maxReverseSpeed: 20
+  maxForwardSpeed: 35
+  maxReverseSpeed: 15
   reverseEngageSpeed: 0.5
-  forwardAcceleration: 30
+  forwardAcceleration: 20
   accelerationMultiplierBySpeedFraction:
     serializedVersion: 2
     m_Curve:
@@ -43,6 +43,7 @@ MonoBehaviour:
   reverseAcceleration: 8
   brakeDeceleration: 30
   coastDeceleration: 4
+  boostDecayPerSecond: 10
   aimRayOriginHeight: 2.2
   maxAimYawDegreesAtLowSpeed: 40
   maxAimYawDegreesAtTopSpeed: 18
