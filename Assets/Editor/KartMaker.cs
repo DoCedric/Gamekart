@@ -195,12 +195,8 @@ public static class KartMaker
 
     static void BuildWheelVisuals(GameObject kart, Transform kartModel, int kartLayer, KartMotor motor, KartAimPoint aimPoint)
     {
-        Transform frontLeftPivot = CreateWheelPivot(kartModel, kartLayer, "FrontLeftSteerPivot", new Vector3(-0.7f, 0.35f, 1f));
-        Transform frontLeftWheel = CreateWheelMesh(frontLeftPivot, kartLayer, "FrontLeftWheel", Vector3.zero);
-
-        Transform frontRightPivot = CreateWheelPivot(kartModel, kartLayer, "FrontRightSteerPivot", new Vector3(0.7f, 0.35f, 1f));
-        Transform frontRightWheel = CreateWheelMesh(frontRightPivot, kartLayer, "FrontRightWheel", Vector3.zero);
-
+        Transform frontLeftWheel = CreateWheelMesh(kartModel, kartLayer, "FrontLeftWheel", new Vector3(-0.7f, 0.35f, 1f));
+        Transform frontRightWheel = CreateWheelMesh(kartModel, kartLayer, "FrontRightWheel", new Vector3(0.7f, 0.35f, 1f));
         Transform rearLeftWheel = CreateWheelMesh(kartModel, kartLayer, "RearLeftWheel", new Vector3(-0.7f, 0.35f, -1f));
         Transform rearRightWheel = CreateWheelMesh(kartModel, kartLayer, "RearRightWheel", new Vector3(0.7f, 0.35f, -1f));
 
@@ -208,24 +204,10 @@ public static class KartMaker
         SetPrivateFields(wheelVisuals,
             ("motor", motor),
             ("aimPoint", aimPoint),
-            ("frontLeftSteerPivot", frontLeftPivot),
-            ("frontLeftWheelMesh", frontLeftWheel),
-            ("frontRightSteerPivot", frontRightPivot),
-            ("frontRightWheelMesh", frontRightWheel),
-            ("rearLeftWheelMesh", rearLeftWheel),
-            ("rearRightWheelMesh", rearRightWheel));
-    }
-
-    // An empty, identity-rotation pivot the front wheels steer around.
-    // KartWheelVisuals sets its local rotation every frame, so nothing
-    // else should rely on a baked-in rotation here.
-    static Transform CreateWheelPivot(Transform parent, int layer, string name, Vector3 localPosition)
-    {
-        GameObject go = new GameObject(name);
-        go.layer = layer;
-        go.transform.SetParent(parent, false);
-        go.transform.localPosition = localPosition;
-        return go.transform;
+            ("frontLeftWheel", frontLeftWheel),
+            ("frontRightWheel", frontRightWheel),
+            ("rearLeftWheel", rearLeftWheel),
+            ("rearRightWheel", rearRightWheel));
     }
 
     static Transform CreateWheelMesh(Transform parent, int layer, string name, Vector3 localPosition)

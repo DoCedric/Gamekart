@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 919490180de6b214391e0de050447c51
+guid: 4b826102b7b726247938389ce46672fe
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
@@ -85,7 +85,7 @@ ModelImporter:
     normalSmoothingSource: 0
     calculateBlendshapeNormalsDeltaFromImportedNormals: 0
   referencedClips: []
-  importAnimation: 1
+  importAnimation: 0
   humanDescription:
     serializedVersion: 3
     human: []
@@ -106,7 +106,7 @@ ModelImporter:
   autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 2
   humanoidOversampling: 1
-  avatarSetup: 0
+  avatarSetup: 1
   addHumanoidExtraRootOnlyWhenUsingAvatar: 1
   importBlendShapeDeformPercent: 1
   remapMaterialsIfMaterialImportModeIsNone: 0

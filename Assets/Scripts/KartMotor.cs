@@ -16,6 +16,7 @@ public class KartMotor : MonoBehaviour
 
     public float ForwardSpeed { get; private set; } // signed meters per second along the heading
     public SurfaceType CurrentSurface { get; private set; }
+    public bool IsGrounded => isGrounded;
     public KartTuning Tuning => tuning;
 
     // Per-kart scaling on top of the shared tuning asset, e.g. for AI difficulty. 1 = the kart's own handling.

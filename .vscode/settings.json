@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Kart2627.slnx"
+    "dotnet.defaultSolution": "GameKart.slnx"
 }

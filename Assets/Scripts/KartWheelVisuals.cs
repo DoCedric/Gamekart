@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Purely cosmetic wheel animation: spins all four wheels by the kart's
@@ -8,10 +9,15 @@ using UnityEngine;
 /// - so without this the wheels would just sit frozen while the kart
 /// corners and drifts.
 ///
-/// Expects each wheel mesh's own local Y axis to be its axle/roll axis
-/// (Unity's primitive Cylinder is already built this way). If you drop in
-/// your own wheel mesh with a different axis convention, fix it by rotating
-/// the mesh inside its own child transform rather than changing this script.
+/// Wheels are owned by this script, not by the Animator: it runs in
+/// LateUpdate (after the Animator) and writes every wheel's rotation from
+/// its rest pose, so keys on wheel bones in an animation clip are ignored.
+///
+/// Expects each wheel's local Y axis to be its axle (a Blender bone's Y
+/// axis runs along the bone, so a wheel bone pointing sideways out of the
+/// hub is exactly this). Which way along the axle it points doesn't matter:
+/// left and right wheels may mirror each other. Bone roll doesn't matter either.
+/// Front wheels steer around the kart's up axis through their own origin.
 /// </summary>
 public class KartWheelVisuals : MonoBehaviour
 {
@@ -19,15 +25,16 @@ public class KartWheelVisuals : MonoBehaviour
     [SerializeField] KartAimPoint aimPoint;
 
     [Header("Front wheels (steer + spin)")]
-    [Tooltip("Empty pivot at the wheel's steering axis. Keep its resting local rotation at identity - this script overwrites it every frame.")]
-    [SerializeField] Transform frontLeftSteerPivot;
-    [SerializeField] Transform frontLeftWheelMesh;
-    [SerializeField] Transform frontRightSteerPivot;
-    [SerializeField] Transform frontRightWheelMesh;
+    [FormerlySerializedAs("frontLeftWheelMesh")]
+    [SerializeField] Transform frontLeftWheel;
+    [FormerlySerializedAs("frontRightWheelMesh")]
+    [SerializeField] Transform frontRightWheel;
 
     [Header("Rear wheels (spin only)")]
-    [SerializeField] Transform rearLeftWheelMesh;
-    [SerializeField] Transform rearRightWheelMesh;
+    [FormerlySerializedAs("rearLeftWheelMesh")]
+    [SerializeField] Transform rearLeftWheel;
+    [FormerlySerializedAs("rearRightWheelMesh")]
+    [SerializeField] Transform rearRightWheel;
 
     [Header("Tuning")]
     [Tooltip("Wheel radius in meters, used to convert forward speed into a spin rate.")]
@@ -36,29 +43,64 @@ public class KartWheelVisuals : MonoBehaviour
     [Tooltip("Clamps how far the front wheels visually turn. Independent of the aim yaw's own range, so it can be tuned purely for looks.")]
     public float maxWheelTurnDegrees = 30f;
 
-    void Update()
+    // One per wheel. Rest pose and axes are read once in Awake,
+    // while the kart model still sits upright under the root.
+    class Wheel
     {
-        SteerFrontWheels();
-        SpinWheel(frontLeftWheelMesh);
-        SpinWheel(frontRightWheelMesh);
-        SpinWheel(rearLeftWheelMesh);
-        SpinWheel(rearRightWheelMesh);
+        public Transform transform;
+        public Quaternion restLocalRotation;
+        public Vector3 steerAxisInParent; // the kart's up axis, in the parent's space
+        public float spinSign;            // +1 if local Y points to the kart's right, -1 if to its left
     }
 
-    void SteerFrontWheels()
-    {
-        float turnDegrees = Mathf.Clamp(aimPoint.AimYawDegrees, -maxWheelTurnDegrees, maxWheelTurnDegrees);
-        Quaternion steerRotation = Quaternion.Euler(0f, turnDegrees, 0f);
+    Wheel frontLeft, frontRight, rearLeft, rearRight;
+    float spinDegrees;
 
-        if (frontLeftSteerPivot != null) frontLeftSteerPivot.localRotation = steerRotation;
-        if (frontRightSteerPivot != null) frontRightSteerPivot.localRotation = steerRotation;
+    void Awake()
+    {
+        frontLeft = Capture(frontLeftWheel);
+        frontRight = Capture(frontRightWheel);
+        rearLeft = Capture(rearLeftWheel);
+        rearRight = Capture(rearRightWheel);
     }
 
-    void SpinWheel(Transform wheelMesh)
+    Wheel Capture(Transform target)
     {
-        if (wheelMesh == null) return;
+        if (target == null) return null;
 
-        float spinDegreesPerSecond = (motor.ForwardSpeed / wheelRadius) * Mathf.Rad2Deg;
-        wheelMesh.Rotate(Vector3.up, spinDegreesPerSecond * Time.deltaTime, Space.Self);
+        Transform parent = target.parent;
+        Vector3 kartUp = transform.up;
+        Vector3 axleWorld = target.TransformDirection(Vector3.up);
+
+        return new Wheel
+        {
+            transform = target,
+            restLocalRotation = target.localRotation,
+            steerAxisInParent = parent != null ? parent.InverseTransformDirection(kartUp) : kartUp,
+            spinSign = Vector3.Dot(axleWorld, transform.right) >= 0f ? 1f : -1f,
+        };
+    }
+
+    void LateUpdate()
+    {
+        float spinDegreesPerMeter = Mathf.Rad2Deg / Mathf.Max(wheelRadius, 0.01f);
+        spinDegrees = Mathf.Repeat(spinDegrees + motor.ForwardSpeed * spinDegreesPerMeter * Time.deltaTime, 360f);
+
+        float steerDegrees = Mathf.Clamp(aimPoint.AimYawDegrees, -maxWheelTurnDegrees, maxWheelTurnDegrees);
+
+        Pose(frontLeft, steerDegrees);
+        Pose(frontRight, steerDegrees);
+        Pose(rearLeft, 0f);
+        Pose(rearRight, 0f);
+    }
+
+    void Pose(Wheel wheel, float steerDegrees)
+    {
+        if (wheel == null) return;
+
+        // Spinning around +local Y by +angle rolls forward when Y points right; mirrored wheels flip the sign.
+        Quaternion spin = Quaternion.AngleAxis(spinDegrees * wheel.spinSign, Vector3.up);
+        Quaternion steer = Quaternion.AngleAxis(steerDegrees, wheel.steerAxisInParent);
+        wheel.transform.localRotation = steer * wheel.restLocalRotation * spin;
     }
 }
