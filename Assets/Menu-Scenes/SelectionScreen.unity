@@ -1806,7 +1806,7 @@ MonoBehaviour:
   timer: 400
   trackScene:
     sceneAsset: {fileID: 102900000, guid: 113f488b5621b7642a1cfd2e9c06c5b0, type: 3}
-    scenePath: Assets/Scenes/track_test.unity
+    scenePath: Assets/Race/Tracks/track_test.unity
   nextAction: {fileID: 7476244043514120974, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   previousAction: {fileID: 2411907206095950430, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   toggleTimerAction: {fileID: 1781555164194001046, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
