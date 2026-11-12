@@ -39,6 +39,10 @@ public class KartTuning : ScriptableObject
     [Header("Ground")]
     public LayerMask trackLayers;
     public float groundCheckExtraDistance = 0.3f;
+    [Tooltip("How long the kart keeps steering and driving after the ground check loses the road (seconds). Covers small hops over seams.")]
+    public float groundedGraceTime = 0.1f;
+    [Tooltip("How quickly the ground normal used for steering and drive follows the surface. Higher = snappier, lower = smoother over faceted bends.")]
+    public float groundNormalSmoothingPerSecond = 20f;
     public float extraDownwardAcceleration = 15f;
     public float modelAlignToGroundPerSecond = 12f;
 

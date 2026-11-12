@@ -53,6 +53,9 @@ public class KartMotor : MonoBehaviour
     KartInputSource inputReader;
     KartAimPoint aimPoint;
     bool isGrounded;
+    float timeSinceGroundSeen = float.PositiveInfinity;
+
+    // Smoothed, so steering and drive don't snap when the kart crosses from one triangle or track piece to the next.
     Vector3 groundNormal = Vector3.up;
 
     void Awake()
@@ -64,7 +67,7 @@ public class KartMotor : MonoBehaviour
     void FixedUpdate()
     {
         float deltaTime = Time.fixedDeltaTime;
-        CheckGround();
+        CheckGround(deltaTime);
         BlendSurfaceMultipliers(deltaTime);
         boostCeiling = Mathf.MoveTowards(boostCeiling, 0f, tuning.boostDecayPerSecond * deltaTime);
 
@@ -88,17 +91,31 @@ public class KartMotor : MonoBehaviour
         kartModel.position = sphereBody.transform.position - kartModel.up * modelHeightBelowSphereCenter;
     }
 
-    void CheckGround()
+    void CheckGround(float deltaTime)
     {
-        isGrounded = Physics.Raycast(sphereBody.position, Vector3.down, out RaycastHit hit,
-                                     sphereRadius + tuning.groundCheckExtraDistance,
-                                     tuning.trackLayers, QueryTriggerInteraction.Ignore);
-        groundNormal = isGrounded ? hit.normal : Vector3.up;
+        // Probe along the kart's own "down" (the last known ground normal) rather than world down,
+        // so the ray still reaches the road on banked corners and slopes.
+        bool groundSeen = Physics.Raycast(sphereBody.position, -groundNormal, out RaycastHit hit,
+                                          sphereRadius + tuning.groundCheckExtraDistance,
+                                          tuning.trackLayers, QueryTriggerInteraction.Ignore);
 
-        if (isGrounded)
+        // Small hops over creases and seams shouldn't cut steering and drive, so stay grounded for a moment.
+        timeSinceGroundSeen = groundSeen ? 0f : timeSinceGroundSeen + deltaTime;
+        isGrounded = timeSinceGroundSeen <= tuning.groundedGraceTime;
+
+        if (groundSeen)
         {
+            float smoothing = 1f - Mathf.Exp(-tuning.groundNormalSmoothingPerSecond * deltaTime);
+            groundNormal = Vector3.Slerp(groundNormal, hit.normal, smoothing).normalized;
+
             SurfaceZone zone = hit.collider.GetComponentInParent<SurfaceZone>();
             CurrentSurface = zone != null && zone.SurfaceType != null ? zone.SurfaceType : defaultSurface;
+        }
+        else if (!isGrounded)
+        {
+            // Properly airborne: level out, which also points the probe back at world down.
+            float smoothing = 1f - Mathf.Exp(-tuning.groundNormalSmoothingPerSecond * deltaTime);
+            groundNormal = Vector3.Slerp(groundNormal, Vector3.up, smoothing).normalized;
         }
     }
 
@@ -122,14 +139,15 @@ public class KartMotor : MonoBehaviour
     }
 
     // Pure pursuit: curvature = 2 * sin(angleToAim) / lookaheadDistance; turnRate = speed * curvature.
+    // The aim point is where the aim ray would land on flat ground, not where it actually hits,
+    // so banking, crests and walls ahead don't change how sharply the kart steers.
     void TurnTowardAimPoint(float deltaTime)
     {
-        Vector3 heading = Vector3.ProjectOnPlane(kartModel.forward, groundNormal).normalized;
-        Vector3 toAimPoint = Vector3.ProjectOnPlane(aimPoint.AimPointWorld - sphereBody.position, groundNormal);
+        float aimRayHeightAboveGround = tuning.aimRayOriginHeight + sphereRadius;
+        float pitchDownRadians = Mathf.Max(aimPoint.AimPitchDownDegrees, 1f) * Mathf.Deg2Rad;
+        float lookaheadDistance = Mathf.Max(aimRayHeightAboveGround / Mathf.Tan(pitchDownRadians), tuning.minLookaheadDistance);
 
-        float lookaheadDistance = Mathf.Max(toAimPoint.magnitude, tuning.minLookaheadDistance);
-        float angleToAimDegrees = Vector3.SignedAngle(heading, toAimPoint, groundNormal);
-        float curvaturePerMeter = 2f * Mathf.Sin(angleToAimDegrees * Mathf.Deg2Rad) / lookaheadDistance;
+        float curvaturePerMeter = 2f * Mathf.Sin(aimPoint.AimYawDegrees * Mathf.Deg2Rad) / lookaheadDistance;
 
         float turnRateDegreesPerSecond = ForwardSpeed * curvaturePerMeter * Mathf.Rad2Deg;
         turnRateDegreesPerSecond = Mathf.Clamp(turnRateDegreesPerSecond,

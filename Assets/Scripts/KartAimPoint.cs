@@ -10,12 +10,14 @@ public class KartAimPoint : MonoBehaviour
     public Vector3 AimPointWorld { get; private set; }
     public bool AimRayHitTrack { get; private set; }
     public float AimYawDegrees { get; private set; }
+    public float AimPitchDownDegrees { get; private set; }
 
     KartInputSource inputReader;
 
     void Awake() => inputReader = GetComponent<KartInputSource>();
 
     // Called by KartMotor once per FixedUpdate, before steering.
+    // The motor steers from AimYawDegrees and AimPitchDownDegrees; the ray hit is only for the reticle.
     public void UpdateAim(float speedFraction, float deltaTime)
     {
         float maxAimYaw = Mathf.Lerp(tuning.maxAimYawDegreesAtLowSpeed, tuning.maxAimYawDegreesAtTopSpeed, speedFraction);
@@ -27,6 +29,7 @@ public class KartAimPoint : MonoBehaviour
         AimYawDegrees = Mathf.Lerp(AimYawDegrees, targetAimYaw, smoothing);
 
         float pitchDownDegrees = Mathf.Lerp(tuning.aimRayPitchDownDegreesAtLowSpeed, tuning.aimRayPitchDownDegreesAtTopSpeed, speedFraction);
+        AimPitchDownDegrees = pitchDownDegrees;
 
         Vector3 up = kartModel.up;
         Vector3 right = kartModel.right;
