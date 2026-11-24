@@ -19,6 +19,9 @@ public class KartRespawner : MonoBehaviour
     [Tooltip("Seconds the kart stays frozen before it is moved. Time for a vanish animation or sound.")]
     [SerializeField, Min(0f)] float respawnDelay = 0.5f;
 
+    [Tooltip("A kart that falls below this world height (fell through the floor or off the track) respawns at its last checkpoint.")]
+    [SerializeField] float killHeight = -12f;
+
     public event Action<KartRespawner> RespawnStarted;
     public event Action<KartRespawner> Respawned;
     public static event Action<KartRespawner> AnyRespawnStarted;
@@ -44,6 +47,11 @@ public class KartRespawner : MonoBehaviour
     }
 
     void Start() => raceManager = FindFirstObjectByType<RaceManager>();
+
+    void Update()
+    {
+        if (!IsRespawning && sphereBody.position.y < killHeight) RequestRespawn();
+    }
 
     /// <summary>Starts a respawn. Returns false if one is already running or the race hasn't begun.</summary>
     public bool RequestRespawn()

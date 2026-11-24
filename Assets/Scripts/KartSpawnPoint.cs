@@ -40,6 +40,9 @@ public class KartSpawnPoint : MonoBehaviour
             Racer racer = kart.AddComponent<Racer>();
             racer.Init("Player", true);
             raceManager.Register(racer);
+
+            // After the Racer exists: the respawner looks it up in Awake.
+            if (kart.GetComponent<KartRespawner>() == null) kart.AddComponent<KartRespawner>();
         }
 
         if (cameraFollow != null)

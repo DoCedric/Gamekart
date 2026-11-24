@@ -3,7 +3,22 @@ guid: 522f3bc58e4e06442bd9c2baba9aaaba
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: grass
+    second: {fileID: 2100000, guid: 2a320b1cfe9470d4da7a356f0ae01c15, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: track
+    second: {fileID: 2100000, guid: 5a3b2e9a0daf7e84aac764fb1d0cd5be, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: trim
+    second: {fileID: 2100000, guid: 256d5e6cc9d68af4e9ef4b261d6c6d6d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
