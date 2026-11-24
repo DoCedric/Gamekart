@@ -1805,8 +1805,8 @@ MonoBehaviour:
   roster: {fileID: 11400000, guid: 324cf271ba94ba94398b16e91819a208, type: 2}
   timer: 400
   trackScene:
-    sceneAsset: {fileID: 102900000, guid: 113f488b5621b7642a1cfd2e9c06c5b0, type: 3}
-    scenePath: Assets/Race/Tracks/track_test.unity
+    sceneAsset: {fileID: 102900000, guid: 6421589eb3e6dfe4e9a54ae0a42abfef, type: 3}
+    scenePath: Assets/Tracks/track_01.unity
   nextAction: {fileID: 7476244043514120974, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   previousAction: {fileID: 2411907206095950430, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   toggleTimerAction: {fileID: 1781555164194001046, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
