@@ -94,7 +94,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: -8945691123924629249, guid: 1773a1af5497eb64bb724216b3fdd8e8, type: 3}
     m_Threshold: 0
-    m_Position: {x: -0.03, y: -0.06}
+    m_Position: {x: 0, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: SpeedFraction
@@ -102,7 +102,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 4514883482007812406, guid: 1773a1af5497eb64bb724216b3fdd8e8, type: 3}
     m_Threshold: 0.33333334
-    m_Position: {x: 1.48, y: -0.05}
+    m_Position: {x: 0, y: 1}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: SpeedFraction
@@ -110,7 +110,7 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 1561946530718441953, guid: 1773a1af5497eb64bb724216b3fdd8e8, type: 3}
     m_Threshold: 0.6666667
-    m_Position: {x: 1, y: -1}
+    m_Position: {x: -1, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: SpeedFraction
@@ -118,13 +118,13 @@ BlendTree:
   - serializedVersion: 2
     m_Motion: {fileID: 3137791682741992821, guid: 1773a1af5497eb64bb724216b3fdd8e8, type: 3}
     m_Threshold: 1
-    m_Position: {x: 1, y: 1}
+    m_Position: {x: 1, y: 0}
     m_TimeScale: 1
     m_CycleOffset: 0
     m_DirectBlendParameter: SpeedFraction
     m_Mirror: 0
-  m_BlendParameter: SpeedFraction
-  m_BlendParameterY: Steer
+  m_BlendParameter: Steer
+  m_BlendParameterY: SpeedFraction
   m_MinThreshold: 0
   m_MaxThreshold: 1
   m_UseAutomaticThresholds: 1
