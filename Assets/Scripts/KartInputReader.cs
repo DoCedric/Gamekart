@@ -27,6 +27,11 @@ public class KartInputReader : KartInputSource
         steerAction.action.Disable();
         accelerateAction.action.Disable();
         brakeReverseAction.action.Disable();
+
+        // Don't leave stale input behind (e.g. while the free-fly camera has control).
+        steerInput = 0f;
+        accelerateInput = 0f;
+        brakeReverseInput = 0f;
     }
 
     void Update()

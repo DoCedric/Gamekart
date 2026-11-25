@@ -1880,6 +1880,64 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 32.1, y: 5.24, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1105411192
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1105411194}
+  - component: {fileID: 1105411193}
+  m_Layer: 0
+  m_Name: freefly
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1105411193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105411192}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c944c3dccc7f2154794e51a91b7d359d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FreeFlyCamera
+  toggleAction: {fileID: 1781555164194001046, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
+  moveAction: {fileID: -1680190386980627800, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
+  verticalAction: {fileID: 0}
+  lookAction: {fileID: -5630151704836100654, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
+  fastAction: {fileID: 0}
+  speedAction: {fileID: 0}
+  freezeTimeAction: {fileID: 0}
+  moveSpeed: 15
+  fastMultiplier: 4
+  speedStep: 1.2
+  minSpeed: 1
+  maxSpeed: 200
+  lookSensitivity: 0.15
+  follow: {fileID: 0}
+--- !u!4 &1105411194
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105411192}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.75008, y: 0, z: -1.82501}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1141610036
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5346,6 +5404,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7610466262699649401, guid: 0913b2c9091bcc748b9eee0334c03cc6, type: 3}
+      propertyPath: far clip plane
+      value: 250
+      objectReference: {fileID: 0}
     - target: {fileID: 8398948871236548598, guid: 0913b2c9091bcc748b9eee0334c03cc6, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.95
@@ -5594,3 +5656,4 @@ SceneRoots:
   - {fileID: 1740737005}
   - {fileID: 9158826387885350964}
   - {fileID: 1202248090}
+  - {fileID: 1105411194}
